@@ -8,8 +8,6 @@ import (
 	"../sql/db"
 )
 
-var q *db.Queries
-
 func main() {
 	// configuration consts
 	const (
