@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "packages": [
+    {
+      "name": "db",
+      "emit_json_tags": true,
+      "emit_prepared_queries": false,
+      "emit_interface": true,
+      "path": "./sql/db",
+      "queries": "./sql/query/",
+      "schema": "./sql/schema/"
+    }
+  ],
+  "overrides": [
+    {
+      "column": "td4.codes.hash",
+      "go_type": "string"
+    }
+  ]
+}

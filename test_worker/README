@@ -1,0 +1,4 @@
+rootless mode docker:
+
+systemctl --user start docker
+https://docs.docker.com/engine/security/rootless/
