@@ -69,7 +69,7 @@ func main() {
 
 	// serve!
 	log.Println("Serving at localhost:8081")
-	log.Fatal(http.ListenAndServe(":8081", h)) //, httpRoot+"/server.crt", httpRoot+"/server.key", h))
+	log.Fatal(http.ListenAndServeTLS(":8081", httpRoot+"/server.crt", httpRoot+"/server.key", h))
 }
 
 func doEvery(d time.Duration, fn func()) {

@@ -23,7 +23,7 @@ func SocialRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	appSettings := map[string]string{
 		"clientID":     os.Getenv("github_client_id"),
 		"clientSecret": os.Getenv("github_client_secret"),
-		"redirectURL":  "http://localhost:8081/auth/github/callback",
+		"redirectURL":  "https://localhost:8081/auth/github/callback",
 	}
 	authURL, err := gocial.New().
 		Driver("github").

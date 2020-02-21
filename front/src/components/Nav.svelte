@@ -1,5 +1,6 @@
 <script>
-    import {getContext} from 'svelte';
+	import { getContext } from 'svelte';
+	import { staticpath } from '../routes/utils'
 	let user = getContext('user');
 	if (user==null) {user={}}
 
@@ -75,8 +76,8 @@
 		<li><a class:selected='{segment === "about"}' href='about'>about</a></li>
 		<li class="avatar">
 			{#if user['avatar'] == null}
-				<a href="http://localhost:8081/auth/github">
-					<img class="avatar" alt="login with github" src="http://localhost:8081/static/login_with_github.png" />
+				<a href="https://localhost:8081/auth/github">
+					<img class="avatar" alt="login with github" src={staticpath("login_with_github.png")} />
 				</a>
 			{:else}
 					<img class="avatar" alt="avatar" src={user.avatar} />
