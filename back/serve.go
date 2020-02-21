@@ -23,7 +23,6 @@ const (
 )
 
 func main() {
-
 	// configure root directory
 	td4Root := os.Getenv("TD4_ROOT")
 	httpRoot := td4Root + "/back"
