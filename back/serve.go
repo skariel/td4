@@ -130,7 +130,7 @@ func middleware(next http.Handler, q *db.Queries) http.Handler {
 		r = handlers.WithQuerierInContext(q, r)
 
 		// Trim slash
-		if len(r.URL.Path) > 1 {
+		if r.URL.Path != "/" {
 			r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
 		}
 
