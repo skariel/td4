@@ -54,6 +54,13 @@ WHERE id=$1;
 SELECT * FROM td4.solution_codes
 WHERE test_code_id=$1;
 
+-- name: GetSolutionByID :one
+SELECT * FROM td4.solution_codes
+WHERE id=$1;
+
+-- name: GetConfByDiplayName :one
+SELECT * FROM td4.run_configs
+WHERE display_name=$1;
 
 -- name: GetUsersByID :many
 SELECT * FROM td4.users
@@ -90,12 +97,10 @@ INSERT INTO td4.tests(created_by, updated_by, title, descr)
 VALUES ($1, $1, $2, $3)
 RETURNING *;
 
-
 -- name: InsertTestCode :one
 INSERT INTO td4.test_codes(created_by, updated_by, test_id, code, is_private)
 VALUES ($1, $1, $2, $3, false)
 RETURNING *;
-
 
 -- name: InsertSolutionCode :one
 WITH s AS (
