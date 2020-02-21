@@ -27,16 +27,18 @@ func SocialRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	authURL, err := gocial.New().
 		Driver("github").
-		//Scopes([]string{"user:email"}). included by default by gocialite
+		// Scopes([]string{"user:email"}). included by default by gocialite
 		Redirect(
 			appSettings["clientID"],
 			appSettings["clientSecret"],
 			appSettings["redirectURL"],
 		)
+
 	if err != nil {
 		ise(w, err)
 		return
 	}
+
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
@@ -45,12 +47,14 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	state := query.Get("state")
 	code := query.Get("code")
+	q := GetQuerierFromContext(r)
 
 	user, _, err := gocial.Handle(state, code) // token not used
 	if err != nil {
 		ise(w, err)
 		return
 	}
+
 	user.ID = "github:" + user.ID
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"display_name": user.Username,
@@ -59,10 +63,12 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		"id":           user.ID,
 	})
 	signedToken, err := jwtToken.SignedString([]byte(os.Getenv("td4_jwt_secret")))
+
 	if err != nil {
 		ise(w, err)
 		return
 	}
+
 	err = q.UpsertUser(context.Background(), db.UpsertUserParams{
 		ID:          user.ID,
 		DisplayName: user.Username,
@@ -72,6 +78,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		ise(w, err)
 		return
 	}
+
 	jwtCookie := http.Cookie{
 		Name:     "jwt_auth",
 		Secure:   false,
@@ -81,6 +88,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(time.Hour * 24 * 12 * 30),
 		SameSite: http.SameSiteDefaultMode}
 	http.SetCookie(w, &jwtCookie)
+
 	userDisplayNameCookie := http.Cookie{
 		Name:     "user_display_name",
 		Secure:   false,
@@ -90,6 +98,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(time.Hour * 24 * 12 * 30),
 		SameSite: http.SameSiteDefaultMode}
 	http.SetCookie(w, &userDisplayNameCookie)
+
 	userAvatarCookie := http.Cookie{
 		Name:     "user_avatar",
 		Secure:   false,
@@ -104,7 +113,6 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetUserFromAuthorizationHeader from jwt
 func GetUserFromAuthorizationHeader(r *http.Request) *db.Td4User {
-
 	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 	if len(auth) != 2 || auth[0] != "Bearer" {
 		return nil
@@ -112,13 +120,14 @@ func GetUserFromAuthorizationHeader(r *http.Request) *db.Td4User {
 
 	token, err := jwt.Parse(auth[1], func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(os.Getenv("td4_jwt_secret")), nil
 	})
 	if err != nil {
 		return nil
 	}
+
 	return &db.Td4User{
 		DisplayName: token.Claims.(jwt.MapClaims)["display_name"].(string),
 		Email:       token.Claims.(jwt.MapClaims)["email"].(string),
@@ -126,10 +135,6 @@ func GetUserFromAuthorizationHeader(r *http.Request) *db.Td4User {
 		ID:          token.Claims.(jwt.MapClaims)["id"].(string),
 	}
 }
-
-type key int
-
-const contextKeyUser = 0
 
 // GetUserFromContext self explanatory!
 func GetUserFromContext(r *http.Request) *db.Td4User {

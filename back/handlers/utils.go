@@ -1,44 +1,54 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"../../sql/db"
 )
 
-var (
-	q *db.Queries
+type key int
+
+const (
+	contextKeyQuerier = iota
+	contextKeyUser
 )
 
-// SetQueries globally set the package query object from sqlc
-func SetQueries(_q *db.Queries) {
-	q = _q
+// WithQuerierInContext self explanatory!
+func WithQuerierInContext(q *db.Queries, r *http.Request) *http.Request {
+	ctx := context.WithValue(r.Context(), key(contextKeyQuerier), q)
+	return r.WithContext(ctx)
+}
+
+// GetQuerierFromContext self explanatory!
+func GetQuerierFromContext(r *http.Request) *db.Queries {
+	return r.Context().Value(key(contextKeyQuerier)).(*db.Queries)
 }
 
 func ise(w http.ResponseWriter, err error) {
 	log.Printf("%v", err)
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte("something bad happened!"))
+	fmt.Fprint(w, "internal server error")
 }
 
 func forb(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusForbidden)
-	w.Write([]byte("Forbidden"))
+	fmt.Fprint(w, "forbidden")
 }
 
 func rj(w http.ResponseWriter, i interface{}) {
-	b, err := json.Marshal(i)
+	w.Header().Set("Content-Type", "application/json")
+
+	err := json.NewEncoder(w).Encode(i)
 	if err != nil {
 		ise(w, err)
-		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
 }
 
 func rh(w http.ResponseWriter, s string) {
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(s))
+	fmt.Fprint(w, s)
 }

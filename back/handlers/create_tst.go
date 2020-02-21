@@ -11,6 +11,7 @@ import (
 // CreateTest does what it says
 func CreateTest(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r)
+	q := GetQuerierFromContext(r)
 
 	if user == nil {
 		forb(w)
@@ -34,6 +35,7 @@ func CreateTest(w http.ResponseWriter, r *http.Request) {
 // CreateCode does what it says
 func CreateCode(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r)
+	q := GetQuerierFromContext(r)
 
 	if user == nil {
 		forb(w)
@@ -57,6 +59,7 @@ func CreateCode(w http.ResponseWriter, r *http.Request) {
 // CreateSolution does what it says
 func CreateSolution(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r)
+	q := GetQuerierFromContext(r)
 
 	if user == nil {
 		forb(w)

@@ -33,7 +33,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	handlers.SetQueries(q)
 	log.Println("Connected to DB")
 
 	// routing
@@ -62,7 +61,7 @@ func main() {
 
 	// apply middlewares
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
-	h = middleware(h)
+	h = middleware(h, q)
 
 	// start some cleanup functions
 	go doEvery(cleaningPendingRunsPerUSerEveryrHrs*time.Hour, func() {
@@ -106,7 +105,7 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 	return n, err
 }
 
-func middleware(next http.Handler) http.Handler {
+func middleware(next http.Handler, q *db.Queries) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 
@@ -121,9 +120,12 @@ func middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// get user
+		// get user and put into context
 		user := handlers.GetUserFromAuthorizationHeader(r)
 		r = handlers.WithUserInContext(user, r)
+
+		// put querier into context
+		r = handlers.WithQuerierInContext(q, r)
 
 		// Trim slash
 		if len(r.URL.Path) > 1 {
