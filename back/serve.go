@@ -14,13 +14,15 @@ import (
 	"./handlers"
 )
 
+// some conf
+const (
+	httptimeoutSeconds                  = 3.0
+	cleaningPendingRunsPerUSerEveryrHrs = 8.0
+	port                                = ":8081"
+	corsOrigin                          = "*"
+)
+
 func main() {
-	// some conf
-	const (
-		httptimeoutSeconds                  = 3.0
-		cleaningPendingRunsPerUSerEveryrHrs = 8.0
-		port                                = ":8081"
-	)
 
 	// configure root directory
 	td4Root := os.Getenv("TD4_ROOT")
@@ -110,7 +112,7 @@ func middleware(next http.Handler, q *db.Queries) http.Handler {
 		startTime := time.Now()
 
 		// enable CORS
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", corsOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
