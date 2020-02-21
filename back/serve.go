@@ -14,26 +14,29 @@ import (
 	"./handlers"
 )
 
-var (
-	q *db.Queries
-)
-
 func main() {
+	// some conf
+	const (
+		httptimeoutSeconds                  = 3.0
+		cleaningPendingRunsPerUSerEveryrHrs = 8.0
+		port                                = ":8081"
+	)
+
+	// configure root directory
 	td4Root := os.Getenv("TD4_ROOT")
-	if td4Root == "" {
-		td4Root = "."
-		log.Printf("TD4_ROOT env is missing. Using working path as default")
-	}
 	httpRoot := td4Root + "/back"
+	log.Printf("httpRoot: %v", httpRoot)
+
 	// connect to the DB
 	q, err := db.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	handlers.SetQueries(q)
 	log.Println("Connected to DB")
 
 	// routing
-	handlers.SetQueries(q)
 	r := mux.NewRouter()
 
 	// static files
@@ -58,18 +61,21 @@ func main() {
 	r.HandleFunc("/api/create_solution", handlers.CreateSolution).Methods("POST")
 
 	// apply middlewares
-	h := http.TimeoutHandler(r, 3*time.Second, "Timeout!\n")
+	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
 	h = middleware(h)
 
 	// start some cleanup functions
-	go doEvery(8*time.Hour, func() {
+	go doEvery(cleaningPendingRunsPerUSerEveryrHrs*time.Hour, func() {
 		log.Println("cleaning pending runs per user")
-		q.CleanPendingRunsPerUSer(context.Background())
+		err = q.CleanPendingRunsPerUSer(context.Background())
+		if err != nil {
+			log.Printf("error while cleaning pending tasks per use: %v", err)
+		}
 	})
 
 	// serve!
-	log.Println("Serving at localhost:8081")
-	log.Fatal(http.ListenAndServeTLS(":8081", httpRoot+"/server.crt", httpRoot+"/server.key", h))
+	log.Println("Serving at " + port)
+	log.Fatal(http.ListenAndServeTLS(port, httpRoot+"/server.crt", httpRoot+"/server.key", h))
 }
 
 func doEvery(d time.Duration, fn func()) {
@@ -93,14 +99,15 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 	if w.status == 0 {
 		w.status = 200
 	}
+
 	n, err := w.ResponseWriter.Write(b)
 	w.length += n
+
 	return n, err
 }
 
 func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		startTime := time.Now()
 
 		// enable CORS
