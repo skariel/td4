@@ -5,8 +5,10 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"../sql/db"
@@ -24,7 +26,7 @@ const (
 
 func main() {
 
-	log.Println("Cretaing a Docker client")
+	log.Println("cretaing a Docker client")
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -34,19 +36,40 @@ func main() {
 	ctx := context.Background()
 	cli.NegotiateAPIVersion(ctx)
 
-	log.Println("pulling docker python image")
+	log.Println("checking if image python exists")
 
-	reader, err := cli.ImagePull(ctx, "docker.io/library/python", types.ImagePullOptions{})
+	imageSummaries, err := cli.ImageList(ctx, types.ImageListOptions{})
 	if err != nil {
-		panic(err)
+		log.Fatalf("cannot check docker images: %v", err)
 	}
 
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		log.Println("DOCKER: " + scanner.Text())
+	var pythonImageExists = false
 
-		if err = scanner.Err(); err != nil {
-			log.Printf("error reading output from docker image pull: %v", err)
+	for i := range imageSummaries {
+		if strings.HasPrefix(imageSummaries[i].RepoTags[0], "python") {
+			log.Println("found docker python image")
+
+			pythonImageExists = true
+
+			break
+		}
+	}
+
+	if !pythonImageExists {
+		log.Println("pulling docker python image")
+
+		reader, _err := cli.ImagePull(ctx, "docker.io/library/python", types.ImagePullOptions{})
+		if _err != nil {
+			panic(_err)
+		}
+
+		scanner := bufio.NewScanner(reader)
+		for scanner.Scan() {
+			log.Println("DOCKER: " + scanner.Text())
+
+			if err = scanner.Err(); err != nil {
+				log.Printf("error reading output from docker image pull: %v", err)
+			}
 		}
 	}
 
@@ -106,47 +129,18 @@ func main() {
 			continue
 		}
 
-		// TODO: copy files to a docker container
-		var buf bytes.Buffer
-
-		content := []byte(tes.Code)
-		tw := tar.NewWriter(&buf)
-		err = tw.WriteHeader(&tar.Header{
-			Name: "test.py",           // filename
-			Mode: 0777,                // permissions
-			Size: int64(len(content)), // filesize
-		})
-
+		// copy files to the docker container
+		err = copyToDocker(cli, ctx, &resp, tes.Code, "test.py")
 		if err != nil {
-			log.Printf("docker copy header test code: %v", err)
+			log.Printf("error while copying test code to docker: %v", err)
 			continue
 		}
 
-		_n, err := tw.Write(content)
+		err = copyToDocker(cli, ctx, &resp, sol.Code, "solution.py")
 		if err != nil {
-			log.Printf("docker write content test code: %v", err)
+			log.Printf("error while copying solution code to docker: %v", err)
 			continue
 		}
-
-		if _n != len(content) {
-			log.Printf("docker could not write all bytes content test code: %v, != %v", len(content), _n)
-			continue
-		}
-
-		err = tw.Close()
-		if err != nil {
-			log.Printf("docker closinf file test code: %v", err)
-			continue
-		}
-
-		// use &buf as argument for content in CopyToContainer
-		err = cli.CopyToContainer(ctx, resp.ID, "/", &buf, types.CopyToContainerOptions{})
-		if err != nil {
-			log.Printf("docker copy test code: %v", err)
-			continue
-		}
-
-		// TODO: run the docker container
 
 		log.Println("running the container")
 
@@ -163,12 +157,16 @@ func main() {
 		case <-statusCh:
 		}
 
-		out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
+		out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 		if err != nil {
 			panic(err)
 		}
 
-		stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+		_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+		if err != nil {
+			log.Printf("error while running container: %v", err)
+			continue
+		}
 
 		log.Printf("code: %v", tes.Code)
 		log.Printf("solution: %v", sol.Code)
@@ -177,4 +175,43 @@ func main() {
 		// TODO: check logs / result
 		// TODO: update run results
 	}
+}
+
+func copyToDocker(cli *client.Client, ctx context.Context, resp *container.ContainerCreateCreatedBody, data string, fn string) error {
+	var buf bytes.Buffer
+
+	const perm = 0777
+
+	content := []byte(data)
+	tw := tar.NewWriter(&buf)
+	err := tw.WriteHeader(&tar.Header{
+		Name: fn,                  // filename
+		Mode: perm,                // permissions
+		Size: int64(len(content)), // filesize
+	})
+
+	if err != nil {
+		return err
+	}
+
+	_n, err := tw.Write(content)
+	if err != nil {
+		return err
+	}
+
+	if _n != len(content) {
+		return errors.New("could not write all data in copyToDocker")
+	}
+
+	err = tw.Close()
+	if err != nil {
+		return err
+	}
+
+	err = cli.CopyToContainer(ctx, resp.ID, "/", &buf, types.CopyToContainerOptions{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
