@@ -1,7 +1,9 @@
 package main
 
 import (
+	"archive/tar"
 	"bufio"
+	"bytes"
 	"context"
 	"log"
 	"os"
@@ -57,6 +59,7 @@ func main() {
 	log.Println("Connected to DB")
 
 	for {
+		log.Println(".")
 		time.Sleep(sleepTimeSeconds * time.Second)
 
 		runs, err := q.FetchSomeRun(context.Background())
@@ -104,6 +107,45 @@ func main() {
 		}
 
 		// TODO: copy files to a docker container
+		var buf bytes.Buffer
+
+		content := []byte(tes.Code)
+		tw := tar.NewWriter(&buf)
+		err = tw.WriteHeader(&tar.Header{
+			Name: "test.py",           // filename
+			Mode: 0777,                // permissions
+			Size: int64(len(content)), // filesize
+		})
+
+		if err != nil {
+			log.Printf("docker copy header test code: %v", err)
+			continue
+		}
+
+		_n, err := tw.Write(content)
+		if err != nil {
+			log.Printf("docker write content test code: %v", err)
+			continue
+		}
+
+		if _n != len(content) {
+			log.Printf("docker could not write all bytes content test code: %v, != %v", len(content), _n)
+			continue
+		}
+
+		err = tw.Close()
+		if err != nil {
+			log.Printf("docker closinf file test code: %v", err)
+			continue
+		}
+
+		// use &buf as argument for content in CopyToContainer
+		err = cli.CopyToContainer(ctx, resp.ID, "/", &buf, types.CopyToContainerOptions{})
+		if err != nil {
+			log.Printf("docker copy test code: %v", err)
+			continue
+		}
+
 		// TODO: run the docker container
 
 		log.Println("running the container")
