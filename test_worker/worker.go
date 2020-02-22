@@ -1,36 +1,52 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"../sql/db"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
+)
+
+// configuration consts
+const (
+	sleepTimeSeconds = 5
 )
 
 func main() {
 
+	log.Println("Cretaing a Docker client")
+
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true})
+	ctx := context.Background()
+	cli.NegotiateAPIVersion(ctx)
+
+	log.Println("pulling docker python image")
+
+	reader, err := cli.ImagePull(ctx, "docker.io/library/python", types.ImagePullOptions{})
 	if err != nil {
 		panic(err)
 	}
 
-	for _, container := range containers {
-		log.Printf("%s %s\n", container.ID[:10], container.Image)
-	}
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		log.Println("DOCKER: " + scanner.Text())
 
-	// configuration consts
-	const (
-		sleepTimeSeconds = 5
-	)
+		if err = scanner.Err(); err != nil {
+			log.Printf("error reading output from docker image pull: %v", err)
+		}
+	}
 
 	// connect to the DB
 	q, err := db.ConnectDB()
@@ -55,7 +71,7 @@ func main() {
 
 		// we have a run!
 		run := runs[0]
-		log.Printf("%v", run)
+		log.Printf("new run arrived: %v", run)
 
 		// get the config, test and solution codes
 		sol, err := q.GetSolutionByID(context.Background(), run.SolutionCodeID)
@@ -76,11 +92,45 @@ func main() {
 			continue
 		}
 
+		log.Println("Creating new container")
+
+		resp, err := cli.ContainerCreate(ctx, &container.Config{
+			Image: "python",
+			Cmd:   []string{"python", "test.py"},
+		}, nil, nil, "")
+		if err != nil {
+			log.Printf("error creating python container: %v", err)
+			continue
+		}
+
 		// TODO: copy files to a docker container
+		// TODO: run the docker container
+
+		log.Println("running the container")
+
+		if err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+			log.Printf("error running the container: %v", err)
+		}
+
+		statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+		select {
+		case err = <-errCh:
+			if err != nil {
+				panic(err)
+			}
+		case <-statusCh:
+		}
+
+		out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
+		if err != nil {
+			panic(err)
+		}
+
+		stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+
 		log.Printf("code: %v", tes.Code)
 		log.Printf("solution: %v", sol.Code)
 		log.Printf("Conf: %v", conf)
-		// TODO: run the docker container
 		// TODO: check if timeout
 		// TODO: check logs / result
 		// TODO: update run results
