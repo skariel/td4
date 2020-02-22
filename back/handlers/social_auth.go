@@ -16,7 +16,18 @@ import (
 	"../../sql/db"
 )
 
-var gocial = gocialite.NewDispatcher()
+const jwtExpiryDelayHrs = 24 * 12 * 30
+
+// WithGocialInContext self explanatory!
+func WithGocialInContext(gocial *gocialite.Dispatcher, r *http.Request) *http.Request {
+	ctx := context.WithValue(r.Context(), key(contextKeyGocial), gocial)
+	return r.WithContext(ctx)
+}
+
+// GetGocialFromContext self explanatory!
+func GetGocialFromContext(r *http.Request) *gocialite.Dispatcher {
+	return r.Context().Value(key(contextKeyGocial)).(*gocialite.Dispatcher)
+}
 
 // SocialRedirectHandler handle login with github
 func SocialRedirectHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +36,7 @@ func SocialRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		"clientSecret": os.Getenv("github_client_secret"),
 		"redirectURL":  "https://localhost:8081/auth/github/callback",
 	}
+	gocial := GetGocialFromContext(r)
 	authURL, err := gocial.New().
 		Driver("github").
 		// Scopes([]string{"user:email"}). included by default by gocialite
@@ -48,6 +60,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	state := query.Get("state")
 	code := query.Get("code")
 	q := GetQuerierFromContext(r)
+	gocial := GetGocialFromContext(r)
 
 	user, _, err := gocial.Handle(state, code) // token not used
 	if err != nil {
@@ -85,7 +98,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: false,
 		Value:    signedToken,
-		Expires:  time.Now().Add(time.Hour * 24 * 12 * 30),
+		Expires:  time.Now().Add(time.Hour * jwtExpiryDelayHrs),
 		SameSite: http.SameSiteDefaultMode}
 	http.SetCookie(w, &jwtCookie)
 
@@ -95,7 +108,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: false,
 		Value:    user.Username,
-		Expires:  time.Now().Add(time.Hour * 24 * 12 * 30),
+		Expires:  time.Now().Add(time.Hour * jwtExpiryDelayHrs),
 		SameSite: http.SameSiteDefaultMode}
 	http.SetCookie(w, &userDisplayNameCookie)
 
@@ -105,7 +118,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: false,
 		Value:    user.Avatar,
-		Expires:  time.Now().Add(time.Hour * 24 * 12 * 30),
+		Expires:  time.Now().Add(time.Hour * jwtExpiryDelayHrs),
 		SameSite: http.SameSiteDefaultMode}
 	http.SetCookie(w, &userAvatarCookie)
 	http.Redirect(w, r, "http://localhost:3000", http.StatusFound)

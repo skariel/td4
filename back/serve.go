@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/danilopolani/gocialite"
 	"github.com/gorilla/mux"
 
 	"../sql/db"
@@ -62,7 +63,7 @@ func main() {
 
 	// apply middlewares
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
-	h = middleware(h, q)
+	h = middleware(h, q, gocialite.NewDispatcher())
 
 	// start some cleanup functions
 	go doEvery(cleaningPendingRunsPerUSerEveryrHrs*time.Hour, func() {
@@ -106,7 +107,7 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 	return n, err
 }
 
-func middleware(next http.Handler, q *db.Queries) http.Handler {
+func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 
@@ -127,6 +128,9 @@ func middleware(next http.Handler, q *db.Queries) http.Handler {
 
 		// put querier into context
 		r = handlers.WithQuerierInContext(q, r)
+
+		// put gocial into context
+		r = handlers.WithGocialInContext(g, r)
 
 		// Trim slash
 		if r.URL.Path != "/" {

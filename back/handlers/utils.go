@@ -14,6 +14,7 @@ type key int
 
 const (
 	contextKeyQuerier = iota
+	contextKeyGocial
 	contextKeyUser
 )
 
@@ -46,9 +47,4 @@ func rj(w http.ResponseWriter, i interface{}) {
 	if err != nil {
 		ise(w, err)
 	}
-}
-
-func rh(w http.ResponseWriter, s string) {
-	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, s)
 }
