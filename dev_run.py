@@ -9,15 +9,8 @@ from subprocess import Popen, getoutput, PIPE
 from multiprocessing import Process, Queue
 from watchdog.observers import Observer
 
-def continuous_read(stream, q, k):
-    while True:
-        l = stream.readline()
-        q.put((k, l))
-        if len(l) == 0:
-            # process is dead and we read everything there is
-            if k=='std':
-                print(R+'* server is down!!!')
-            break
+# TODO: separate `.go` file events for worker and server
+# TODO: add worker (run, stop, etc.)
     
 
 class FileEventManager:
@@ -28,17 +21,20 @@ class FileEventManager:
         self.event_queue.append(event)
 
 
-class Server:
-    def __init__(self):
+# TODO: change to general process, so worker can fit here too
+class ManagedProcess:
+    def __init__(self, display_name, command, q):
+        self.display_name = display_name
+        self.command = command
         self.server = None
         self.ps = None
         self.pe = None
-        self.q = Queue()
+        self.q = q
 
     def run(self):
-        self.server = Popen('go run ./back', stdout=PIPE, stderr=PIPE, encoding='utf-8', universal_newlines=True, bufsize=1, shell=True, preexec_fn=os.setsid)
-        self.ps = Process(target=continuous_read, args=(self.server.stdout, self.q, 'std'))
-        self.pe = Process(target=continuous_read, args=(self.server.stderr, self.q, 'err'))
+        self.server = Popen(self.command, stdout=PIPE, stderr=PIPE, encoding='utf-8', universal_newlines=True, bufsize=1, shell=True, preexec_fn=os.setsid)
+        self.ps = Process(target=self.continuous_read, args=(self.server.stdout, 'std'))
+        self.pe = Process(target=self.continuous_read, args=(self.server.stderr, 'err'))
         self.ps.start()
         self.pe.start()
 
@@ -46,6 +42,17 @@ class Server:
         os.killpg(os.getpgid(self.server.pid), signal.SIGTERM)
         self.ps.kill()
         self.pe.kill()
+
+    def continuous_read(self, stream, k):
+        while True:
+            l = stream.readline()
+            if len(l) == 0:
+                # process is dead and we read everything there is
+                if k=='std':
+                    print(R+f'* {self.display_name} is down!!!')
+                break
+            # process is till alive!
+            self.q.put((self.display_name, k, l))
 
 
 # console colors
@@ -63,7 +70,8 @@ if __name__=='__main__':
     observer.start()
 
     print(G+'* initializing server')
-    server = Server()
+    q = Queue()
+    server = ManagedProcess(display_name='API', command='go run ./back', q=q)
     server.run()
 
     last_time = time.time() # now!
@@ -73,11 +81,11 @@ if __name__=='__main__':
         try:
             try:
                 # read server output
-                l = server.q.get(timeout=0.3)
-                if l[0]=='std':
-                    print(W+l[1].strip())
+                l = q.get(timeout=0.3)
+                if l[1]=='std':
+                    print(W+f' {l[0]} '+l[2].strip())
                 else:
-                    print(W+l[1].strip(), file=sys.stderr)
+                    print(W+f' {l[0]} '+l[2].strip(), file=sys.stderr)
             except queue.Empty:
                 # timeout, time to check file events
                 pass
@@ -111,13 +119,14 @@ if __name__=='__main__':
                 continue
 
             if should_rerun_server:
-                print(G+'* Killing server')
+                print(G+f'* Killing {server.display_name}')
                 server.stop()
-                print(G+'* starting server')
+                print(G+f'* starting {server.display_name}')
                 server.run()
                 should_rerun_server = False
         except KeyboardInterrupt:
-            print(G+'* stopping server')
+            print()
+            print(G+f'* stopping {server.display_name}')
             server.stop()
             print(G+'* exit!')
             sys.exit()
