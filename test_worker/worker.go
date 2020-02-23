@@ -82,14 +82,15 @@ func main() {
 	log.Println("Connected to DB")
 
 	for {
-		log.Println(".")
 		time.Sleep(sleepTimeSeconds * time.Second)
 
 		runs, err := q.FetchSomeRun(context.Background())
 		if err != nil {
-			log.Printf("%v", err)
+			log.Printf("error while fetching run: %v", err)
 			continue
 		}
+
+		log.Println(".")
 
 		if len(runs) == 0 {
 			continue
@@ -122,7 +123,7 @@ func main() {
 
 		resp, err := cli.ContainerCreate(ctx, &container.Config{
 			Image: "python",
-			Cmd:   []string{"python", "test.py"},
+			Cmd:   []string{"python", "-u", "test.py"},
 		}, nil, nil, "")
 		if err != nil {
 			log.Printf("error creating python container: %v", err)
@@ -152,14 +153,14 @@ func main() {
 		select {
 		case err = <-errCh:
 			if err != nil {
-				panic(err)
+				log.Printf("error while running container: %v", err)
 			}
 		case <-statusCh:
 		}
 
 		out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 		if err != nil {
-			panic(err)
+			log.Printf("error while reading container logs: %v", err)
 		}
 
 		_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)

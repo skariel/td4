@@ -56,8 +56,7 @@
 	add code!
 </button>
 <div  style="margin:15px;">
-	<code contenteditable="true" bind:textContent={new_code}>
-	</code>
+	<textarea bind:value={new_code} />
 </div>
 
 {#each codes as c }
