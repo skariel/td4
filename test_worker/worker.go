@@ -90,8 +90,6 @@ func main() {
 			continue
 		}
 
-		log.Println(".")
-
 		if len(runs) == 0 {
 			continue
 		}

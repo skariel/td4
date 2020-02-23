@@ -68,9 +68,8 @@
 <button on:click={()=>create_solution()} disabled={new_solution.length == 0}>
 	add solution!
 </button>
-<div  style="margin:15px;">
-	<code contenteditable="true" bind:textContent={new_solution}>
-	</code>
+<div style="margin:15px;">
+	<textarea style="width:100%; height:200px" bind:value={new_solution} />
 </div>
 
 
