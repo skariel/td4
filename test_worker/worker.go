@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -15,7 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/joshdk/go-junit"
 )
 
 // configuration consts
@@ -69,17 +69,67 @@ func main() {
 
 		resp, err := cli.ContainerCreate(ctx, &container.Config{
 			Image: dockerImageName,
-			Cmd:   []string{"pytest", "-rp", "./test/test.py"},
+			Cmd:   []string{"pytest", "--junitxml=./test_result.xml", "-rp", "./test/test.py"},
 		}, nil, nil, "")
 		if err != nil {
 			log.Printf("error creating python container: %v", err)
 			continue
 		}
 
-		if err := runRun(ctx, cli, &resp, tes, sol, conf); err != nil {
+		if err = runRun(ctx, cli, &resp, tes, sol, conf); err != nil {
 			log.Printf("error while running container: %v", err)
+			continue
 		}
+
+		// get test output!
+		r, _, err := cli.CopyFromContainer(ctx, resp.ID, "/test_result.xml")
+		if err != nil {
+			log.Printf("error while copying test log: %v", err)
+			continue
+		}
+
+		xml, err := readContents(r)
+		_ = r.Close()
+
+		if err != nil {
+			log.Printf("error while reading test log: %v", err)
+			continue
+		}
+
+		log.Printf("XML ====== %v", string(xml))
+
+		err = r.Close()
+		if err != nil {
+			log.Printf("error while closing test log: %v", err)
+			continue
+		}
+
+		suites, err := junit.Ingest(xml)
+		if err != nil {
+			log.Printf("error while parsing test log: %v", err)
+			continue
+		}
+
+		log.Printf("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT: %v", suites)
 	}
+}
+
+func readContents(reader io.Reader) ([]byte, error) {
+	tr := tar.NewReader(reader)
+
+	_, err := tr.Next()
+	if err != nil {
+		return nil, err
+	}
+
+	buf := new(bytes.Buffer)
+
+	_, err = buf.ReadFrom(tr)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 func runRun(
@@ -113,15 +163,15 @@ func runRun(
 	case <-statusCh:
 	}
 
-	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
-	if err != nil {
-		log.Printf("error while reading container logs: %v", err)
-	}
+	// out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	// if err != nil {
+	// 	log.Printf("error while reading container logs: %v", err)
+	// }
 
-	_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
-	if err != nil {
-		return err
-	}
+	// _, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 	// TODO: check if timeout
