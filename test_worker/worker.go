@@ -25,9 +25,6 @@ const (
 )
 
 func main() {
-
-	log.Println("cretaing a Docker client")
-
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		log.Fatal(err)
@@ -36,41 +33,11 @@ func main() {
 	ctx := context.Background()
 	cli.NegotiateAPIVersion(ctx)
 
-	log.Println("checking if image python exists")
-
-	imageSummaries, err := cli.ImageList(ctx, types.ImageListOptions{})
-	if err != nil {
-		log.Fatalf("cannot check docker images: %v", err)
-	}
-
-	var pythonImageExists = false
-
-	for i := range imageSummaries {
-		if strings.HasPrefix(imageSummaries[i].RepoTags[0], "python") {
-			log.Println("found docker python image")
-
-			pythonImageExists = true
-
-			break
-		}
-	}
-
-	if !pythonImageExists {
+	if !checkIfPythonImageExists(ctx, cli) {
 		log.Println("pulling docker python image")
-
-		reader, _err := cli.ImagePull(ctx, "docker.io/library/python", types.ImagePullOptions{})
-		if _err != nil {
-			panic(_err)
-		}
-
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			log.Println("DOCKER: " + scanner.Text())
-
-			if err = scanner.Err(); err != nil {
-				log.Printf("error reading output from docker image pull: %v", err)
-			}
-		}
+		pullPythonImage(ctx, cli)
+	} else {
+		log.Println("found docker python image")
 	}
 
 	// connect to the DB
@@ -98,22 +65,10 @@ func main() {
 		run := runs[0]
 		log.Printf("new run arrived: %v", run)
 
-		// get the config, test and solution codes
-		sol, err := q.GetSolutionByID(context.Background(), run.SolutionCodeID)
+		// conf is not yet needed
+		sol, tes, _, err := getCodesAndConf(&run, q)
 		if err != nil {
 			log.Printf("error getting solution code: %v for run: %v", err, run)
-			continue
-		}
-
-		tes, err := q.GetTestCodeByID(context.Background(), sol.TestCodeID)
-		if err != nil {
-			log.Printf("error getting test code: %v for solution: %v", err, sol)
-			continue
-		}
-
-		conf, err := q.GetConfByDiplayName(context.Background(), run.RunConfig)
-		if err != nil {
-			log.Printf("error getting conf: %v for run: %v", err, run)
 			continue
 		}
 
@@ -129,13 +84,13 @@ func main() {
 		}
 
 		// copy files to the docker container
-		err = copyToDocker(cli, ctx, &resp, tes.Code, "test.py")
+		err = copyToDocker(ctx, cli, &resp, tes.Code, "test.py")
 		if err != nil {
 			log.Printf("error while copying test code to docker: %v", err)
 			continue
 		}
 
-		err = copyToDocker(cli, ctx, &resp, sol.Code, "solution.py")
+		err = copyToDocker(ctx, cli, &resp, sol.Code, "solution.py")
 		if err != nil {
 			log.Printf("error while copying solution code to docker: %v", err)
 			continue
@@ -167,16 +122,66 @@ func main() {
 			continue
 		}
 
-		log.Printf("code: %v", tes.Code)
-		log.Printf("solution: %v", sol.Code)
-		log.Printf("Conf: %v", conf)
 		// TODO: check if timeout
 		// TODO: check logs / result
 		// TODO: update run results
 	}
 }
 
-func copyToDocker(cli *client.Client, ctx context.Context, resp *container.ContainerCreateCreatedBody, data string, fn string) error {
+func getCodesAndConf(run *db.Td4Run, q *db.Queries) (*db.Td4SolutionCode, *db.Td4TestCode, *db.Td4RunConfig, error) {
+	sol, err := q.GetSolutionByID(context.Background(), run.SolutionCodeID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	tes, err := q.GetTestCodeByID(context.Background(), sol.TestCodeID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	conf, err := q.GetConfByDiplayName(context.Background(), run.RunConfig)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return &sol, &tes, &conf, nil
+}
+
+func checkIfPythonImageExists(ctx context.Context, cli *client.Client) bool {
+	log.Println("checking if image python exists")
+
+	imageSummaries, err := cli.ImageList(ctx, types.ImageListOptions{})
+	if err != nil {
+		log.Fatalf("cannot check docker images: %v", err)
+	}
+
+	for i := range imageSummaries {
+		if strings.HasPrefix(imageSummaries[i].RepoTags[0], "python") {
+			return true
+		}
+	}
+
+	return false
+}
+
+func pullPythonImage(ctx context.Context, cli *client.Client) {
+	reader, err := cli.ImagePull(ctx, "docker.io/library/python", types.ImagePullOptions{})
+	if err != nil {
+		log.Fatalf("error while pulling python image: %v", err)
+		panic(err)
+	}
+
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		log.Println("DOCKER: " + scanner.Text())
+
+		if err = scanner.Err(); err != nil {
+			log.Printf("error reading output from docker image pull: %v", err)
+		}
+	}
+}
+
+func copyToDocker(ctx context.Context, cli *client.Client, resp *container.ContainerCreateCreatedBody, data, fn string) error {
 	var buf bytes.Buffer
 
 	const perm = 0777
