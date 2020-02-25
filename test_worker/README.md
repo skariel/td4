@@ -8,3 +8,8 @@ useful docker:
 docker run --rm -it ipython
 docker container prune
 docker ps -a
+
+build td4 image:
+
+in /dock:
+docker build -t td4:v1 .

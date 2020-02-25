@@ -1,6 +1,9 @@
 FROM python
 RUN pip install --upgrade pip
-RUN pip install ipython numpy scipy opencv-python
-CMD ipython
+RUN pip install requests flask numpy opencv-python pytest
+RUN pip install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+RUN mkdir test
+CMD pytest ./test/test.py
+
 
 

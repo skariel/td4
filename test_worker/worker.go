@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/tar"
-	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -22,6 +21,7 @@ import (
 // configuration consts
 const (
 	sleepTimeSeconds = 5
+	dockerImageName  = "td4:v1"
 )
 
 func main() {
@@ -32,13 +32,6 @@ func main() {
 
 	ctx := context.Background()
 	cli.NegotiateAPIVersion(ctx)
-
-	if !checkIfPythonImageExists(ctx, cli) {
-		log.Println("pulling docker python image")
-		pullPythonImage(ctx, cli)
-	} else {
-		log.Println("found docker python image")
-	}
 
 	// connect to the DB
 	q, err := db.ConnectDB()
@@ -75,8 +68,8 @@ func main() {
 		log.Println("running")
 
 		resp, err := cli.ContainerCreate(ctx, &container.Config{
-			Image: "python",
-			Cmd:   []string{"python", "-u", "test.py"},
+			Image: dockerImageName,
+			Cmd:   []string{"pytest", "-rp", "./test/test.py"},
 		}, nil, nil, "")
 		if err != nil {
 			log.Printf("error creating python container: %v", err)
@@ -96,13 +89,12 @@ func runRun(
 	tes *db.Td4TestCode,
 	sol *db.Td4SolutionCode,
 	_ *db.Td4RunConfig) error {
-	// copy files to the docker container
-	err := copyToDocker(ctx, cli, resp, tes.Code, "test.py")
+	err := copyToDocker(ctx, cli, resp, tes.Code, "test/test.py")
 	if err != nil {
 		return err
 	}
 
-	err = copyToDocker(ctx, cli, resp, sol.Code, "solution.py")
+	err = copyToDocker(ctx, cli, resp, sol.Code, "test/solution.py")
 	if err != nil {
 		return err
 	}
@@ -156,8 +148,8 @@ func getCodesAndConf(ctx context.Context, run *db.Td4Run, q *db.Queries) (*db.Td
 	return &sol, &tes, &conf, nil
 }
 
-func checkIfPythonImageExists(ctx context.Context, cli *client.Client) bool {
-	log.Println("checking if image python exists")
+func checkIfDockerImageExists(ctx context.Context, cli *client.Client) bool {
+	log.Println("checking if image ${dockerImageName} exists")
 
 	imageSummaries, err := cli.ImageList(ctx, types.ImageListOptions{})
 	if err != nil {
@@ -171,23 +163,6 @@ func checkIfPythonImageExists(ctx context.Context, cli *client.Client) bool {
 	}
 
 	return false
-}
-
-func pullPythonImage(ctx context.Context, cli *client.Client) {
-	reader, err := cli.ImagePull(ctx, "docker.io/library/python", types.ImagePullOptions{})
-	if err != nil {
-		log.Fatalf("error while pulling python image: %v", err)
-		panic(err)
-	}
-
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		log.Println("DOCKER: " + scanner.Text())
-
-		if err = scanner.Err(); err != nil {
-			log.Printf("error reading output from docker image pull: %v", err)
-		}
-	}
 }
 
 func copyToDocker(ctx context.Context, cli *client.Client, resp *container.ContainerCreateCreatedBody, data, fn string) error {
