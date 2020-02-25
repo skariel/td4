@@ -48,6 +48,7 @@ func main() {
 
 	log.Println("Connected to DB")
 
+	// main work loop: get run, get run data, runRun, repeat!
 	for {
 		time.Sleep(sleepTimeSeconds * time.Second)
 
@@ -65,14 +66,13 @@ func main() {
 		run := runs[0]
 		log.Printf("new run arrived: %v", run)
 
-		// conf is not yet needed
-		sol, tes, _, err := getCodesAndConf(&run, q)
+		sol, tes, conf, err := getCodesAndConf(ctx, &run, q)
 		if err != nil {
-			log.Printf("error getting solution code: %v for run: %v", err, run)
+			log.Printf("error getting run data: %v for run: %v", err, run)
 			continue
 		}
 
-		log.Println("Creating new container")
+		log.Println("running")
 
 		resp, err := cli.ContainerCreate(ctx, &container.Config{
 			Image: "python",
@@ -83,63 +83,72 @@ func main() {
 			continue
 		}
 
-		// copy files to the docker container
-		err = copyToDocker(ctx, cli, &resp, tes.Code, "test.py")
-		if err != nil {
-			log.Printf("error while copying test code to docker: %v", err)
-			continue
-		}
-
-		err = copyToDocker(ctx, cli, &resp, sol.Code, "solution.py")
-		if err != nil {
-			log.Printf("error while copying solution code to docker: %v", err)
-			continue
-		}
-
-		log.Println("running the container")
-
-		if err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-			log.Printf("error running the container: %v", err)
-		}
-
-		statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
-		select {
-		case err = <-errCh:
-			if err != nil {
-				log.Printf("error while running container: %v", err)
-			}
-		case <-statusCh:
-		}
-
-		out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
-		if err != nil {
-			log.Printf("error while reading container logs: %v", err)
-		}
-
-		_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
-		if err != nil {
+		if err := runRun(ctx, cli, &resp, tes, sol, conf); err != nil {
 			log.Printf("error while running container: %v", err)
-			continue
 		}
-
-		// TODO: check if timeout
-		// TODO: check logs / result
-		// TODO: update run results
 	}
 }
 
-func getCodesAndConf(run *db.Td4Run, q *db.Queries) (*db.Td4SolutionCode, *db.Td4TestCode, *db.Td4RunConfig, error) {
-	sol, err := q.GetSolutionByID(context.Background(), run.SolutionCodeID)
+func runRun(
+	ctx context.Context,
+	cli *client.Client,
+	resp *container.ContainerCreateCreatedBody,
+	tes *db.Td4TestCode,
+	sol *db.Td4SolutionCode,
+	_ *db.Td4RunConfig) error {
+	// copy files to the docker container
+	err := copyToDocker(ctx, cli, resp, tes.Code, "test.py")
+	if err != nil {
+		return err
+	}
+
+	err = copyToDocker(ctx, cli, resp, sol.Code, "solution.py")
+	if err != nil {
+		return err
+	}
+
+	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
+	if err != nil {
+		return err
+	}
+
+	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	select {
+	case err = <-errCh:
+		if err != nil {
+			return err
+		}
+	case <-statusCh:
+	}
+
+	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	if err != nil {
+		log.Printf("error while reading container logs: %v", err)
+	}
+
+	_, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	if err != nil {
+		return err
+	}
+
+	return nil
+	// TODO: check if timeout
+	// TODO: check logs / result
+	// TODO: update run results
+}
+
+func getCodesAndConf(ctx context.Context, run *db.Td4Run, q *db.Queries) (*db.Td4SolutionCode, *db.Td4TestCode, *db.Td4RunConfig, error) {
+	sol, err := q.GetSolutionByID(ctx, run.SolutionCodeID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	tes, err := q.GetTestCodeByID(context.Background(), sol.TestCodeID)
+	tes, err := q.GetTestCodeByID(ctx, sol.TestCodeID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	conf, err := q.GetConfByDiplayName(context.Background(), run.RunConfig)
+	conf, err := q.GetConfByDiplayName(ctx, run.RunConfig)
 	if err != nil {
 		return nil, nil, nil, err
 	}
