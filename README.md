@@ -32,3 +32,15 @@ go linter being used: golangci-lint: https://github.com/golangci/golangci-lint#b
 
 screen: `gtk-redshift -l 32.08:34.78`
 
+
+tech used:
+--------------
+pytest
+postgresql
+golang
+svelte
+sapper
+docker
+sqlc
+api + static rendered site
+
