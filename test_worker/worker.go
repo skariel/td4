@@ -66,25 +66,9 @@ func main() {
 			continue
 		}
 
-		log.Println("running")
-
-		resp, err := cli.ContainerCreate(ctx, &container.Config{
-			Image: dockerImageName,
-			Cmd:   []string{"pytest", "--junitxml=./test_result.xml", "-rp", "./test/test.py"},
-		}, nil, nil, "")
+		suites, err := runContainer(ctx, cli, tes, sol, conf, q, dbase, run.ID)
 		if err != nil {
-			log.Printf("error creating python container: %v", err)
-			continue
-		}
-
-		if err = runRun(ctx, cli, &resp, tes, sol, conf); err != nil {
-			log.Printf("error while running container: %v", err)
-			continue
-		}
-
-		suites, err := reportResults(ctx, cli, &resp, q, dbase, run.ID)
-		if err != nil {
-			log.Printf("error while reporting run results: %v", err)
+			log.Printf("error running container: %v", err)
 			continue
 		}
 
@@ -103,6 +87,43 @@ func main() {
 			}
 		}
 	}
+}
+
+func runContainer(
+	ctx context.Context,
+	cli *client.Client,
+	tes *db.Td4TestCode,
+	sol *db.Td4SolutionCode,
+	conf *db.Td4RunConfig,
+	q *db.Queries,
+	dbase *sql.DB,
+	runid int32) ([]junit.Suite, error) {
+	resp, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: dockerImageName,
+		Cmd:   []string{"pytest", "--junitxml=./test_result.xml", "-rp", "./test/test.py"},
+	}, nil, nil, "")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{
+			RemoveLinks:   true,
+			RemoveVolumes: true,
+			Force:         true})
+	}()
+
+	err = runRun(ctx, cli, &resp, tes, sol, conf)
+	if err != nil {
+		return nil, err
+	}
+
+	suites, err := reportResults(ctx, cli, &resp, q, dbase, runid)
+	if err != nil {
+		return nil, err
+	}
+
+	return suites, nil
 }
 
 func reportResults(
@@ -257,6 +278,9 @@ func copyToDocker(ctx context.Context, cli *client.Client, resp *container.Conta
 
 	content := []byte(data)
 	tw := tar.NewWriter(&buf)
+
+	defer func() { _ = tw.Close() }()
+
 	err := tw.WriteHeader(&tar.Header{
 		Name: fn,                  // filename
 		Mode: perm,                // permissions
@@ -274,11 +298,6 @@ func copyToDocker(ctx context.Context, cli *client.Client, resp *container.Conta
 
 	if _n != len(content) {
 		return errors.New("could not write all data in copyToDocker")
-	}
-
-	err = tw.Close()
-	if err != nil {
-		return err
 	}
 
 	err = cli.CopyToContainer(ctx, resp.ID, "/", &buf, types.CopyToContainerOptions{})
