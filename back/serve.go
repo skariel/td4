@@ -30,7 +30,7 @@ func main() {
 	log.Printf("httpRoot: %v", httpRoot)
 
 	// connect to the DB
-	q, err := db.ConnectDB()
+	q, _, err := db.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}

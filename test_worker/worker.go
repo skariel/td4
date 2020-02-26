@@ -4,10 +4,11 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 	"io"
 	"log"
-	"strings"
 	"time"
 
 	"../sql/db"
@@ -34,7 +35,7 @@ func main() {
 	cli.NegotiateAPIVersion(ctx)
 
 	// connect to the DB
-	q, err := db.ConnectDB()
+	q, dbase, err := db.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +58,7 @@ func main() {
 
 		// we have a run!
 		run := runs[0]
-		log.Printf("new run arrived: %v", run)
+		log.Printf("new run arrived id = %v", run.ID)
 
 		sol, tes, conf, err := getCodesAndConf(ctx, &run, q)
 		if err != nil {
@@ -81,37 +82,100 @@ func main() {
 			continue
 		}
 
-		// get test output!
-		r, _, err := cli.CopyFromContainer(ctx, resp.ID, "/test_result.xml")
+		suites, err := reportResults(ctx, cli, &resp, q, dbase, run.ID)
 		if err != nil {
-			log.Printf("error while copying test log: %v", err)
+			log.Printf("error while reporting run results: %v", err)
 			continue
 		}
 
-		xml, err := readContents(r)
-		_ = r.Close()
+		for ix := range suites {
+			suite := suites[ix]
+			fmt.Println(suite.Name)
 
-		if err != nil {
-			log.Printf("error while reading test log: %v", err)
-			continue
+			for _, test := range suite.Tests {
+				fmt.Printf("  %s\n", test.Name)
+
+				if test.Error != nil {
+					fmt.Printf("    %s: %s\n", test.Status, test.Error.Error())
+				} else {
+					fmt.Printf("    %s\n", test.Status)
+				}
+			}
 		}
-
-		log.Printf("XML ====== %v", string(xml))
-
-		err = r.Close()
-		if err != nil {
-			log.Printf("error while closing test log: %v", err)
-			continue
-		}
-
-		suites, err := junit.Ingest(xml)
-		if err != nil {
-			log.Printf("error while parsing test log: %v", err)
-			continue
-		}
-
-		log.Printf("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT: %v", suites)
 	}
+}
+
+func reportResults(
+	ctx context.Context,
+	cli *client.Client,
+	resp *container.ContainerCreateCreatedBody,
+	q *db.Queries,
+	dbase *sql.DB,
+	runid int32) ([]junit.Suite, error) {
+	// get test output!
+	r, _, err := cli.CopyFromContainer(ctx, resp.ID, "/test_result.xml")
+
+	defer func() { _ = r.Close() }()
+
+	if err != nil {
+		return nil, err
+	}
+
+	xml, err := readContents(r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	suites, err := junit.Ingest(xml)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := dbase.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	tq := q.WithTx(tx)
+
+	var status db.Td4TypeRunStatus
+
+	if (suites[0].Totals.Failed == 0) && (suites[0].Totals.Error == 0) {
+		status = db.Td4TypeRunStatusPass
+	} else {
+		status = db.Td4TypeRunStatusFail
+	}
+
+	// checking error at end of transaction
+	_ = tq.EndRunByID(ctx, db.EndRunByIDParams{
+		ID:     runid,
+		Status: status})
+
+	for ix := range suites {
+		suite := suites[ix]
+		for _, test := range suite.Tests {
+			if test.Error != nil {
+				_, _ = tq.InsertRunResult(ctx, db.InsertRunResultParams{
+					RunID:  runid,
+					Status: db.Td4TypeRunResultStatusFail,
+					Title:  sql.NullString{String: test.Name, Valid: true},
+					Output: sql.NullString{String: test.Error.Error(), Valid: true}})
+			} else {
+				_, _ = tq.InsertRunResult(ctx, db.InsertRunResultParams{
+					RunID:  runid,
+					Status: db.Td4TypeRunResultStatusPass,
+					Title:  sql.NullString{String: test.Name, Valid: true}})
+			}
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return suites, nil
 }
 
 func readContents(reader io.Reader) ([]byte, error) {
@@ -163,20 +227,8 @@ func runRun(
 	case <-statusCh:
 	}
 
-	// out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
-	// if err != nil {
-	// 	log.Printf("error while reading container logs: %v", err)
-	// }
-
-	// _, err = stdcopy.StdCopy(os.Stdout, os.Stderr, out)
-	// if err != nil {
-	// 	return err
-	// }
-
+	// TODO: check for timeout
 	return nil
-	// TODO: check if timeout
-	// TODO: check logs / result
-	// TODO: update run results
 }
 
 func getCodesAndConf(ctx context.Context, run *db.Td4Run, q *db.Queries) (*db.Td4SolutionCode, *db.Td4TestCode, *db.Td4RunConfig, error) {
@@ -196,23 +248,6 @@ func getCodesAndConf(ctx context.Context, run *db.Td4Run, q *db.Queries) (*db.Td
 	}
 
 	return &sol, &tes, &conf, nil
-}
-
-func checkIfDockerImageExists(ctx context.Context, cli *client.Client) bool {
-	log.Println("checking if image ${dockerImageName} exists")
-
-	imageSummaries, err := cli.ImageList(ctx, types.ImageListOptions{})
-	if err != nil {
-		log.Fatalf("cannot check docker images: %v", err)
-	}
-
-	for i := range imageSummaries {
-		if strings.HasPrefix(imageSummaries[i].RepoTags[0], "python") {
-			return true
-		}
-	}
-
-	return false
 }
 
 func copyToDocker(ctx context.Context, cli *client.Client, resp *container.ContainerCreateCreatedBody, data, fn string) error {

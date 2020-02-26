@@ -115,4 +115,18 @@ VALUES($1, $1, (SELECT id FROM s), 'default')
 SELECT * FROM s;
 
 
+-- name: InsertRunResult :one
+INSERT INTO td4.run_results(run_id, status, title, output)
+VALUES($1, $2, $3, $4)
+RETURNING *;
+
+-- name: EndRunByID :exec
+UPDATE td4.runs
+SET
+    ts_end=NOW(),
+    status=$2
+WHERE
+    id=$1;
+
+
 

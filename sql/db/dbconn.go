@@ -9,7 +9,7 @@ import (
 )
 
 // ConnectDB establish the global DB connection
-func ConnectDB() (*Queries, error) {
+func ConnectDB() (*Queries, *sql.DB, error) {
 	connStr := `user=postgres
 				dbname=skariel
 				password=1234567
@@ -18,13 +18,13 @@ func ConnectDB() (*Queries, error) {
 	dbc, err := sql.Open("postgres", connStr)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	err = dbc.Ping()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return New(dbc), nil
+	return New(dbc), dbc, nil
 }

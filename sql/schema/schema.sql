@@ -111,15 +111,9 @@ CREATE TABLE td4.run_results (
 
     run_id integer NOT NULL REFERENCES td4.runs(id) ON DELETE CASCADE,
 
-    ts_start timestamptz,
-    ts_end timestamptz,
 	status td4.type_run_result_status NOT NULL DEFAULT 'todo',
 	title text,
-	descr text,
-	output text,
-
-    file text,
-    line integer
+	output text
 );
 CREATE INDEX run_id_run_results_index ON td4.run_results (run_id);
 
