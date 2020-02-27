@@ -66,10 +66,11 @@ CREATE TABLE td4.run_configs (
     created_by text NOT NULL REFERENCES td4.users(id) ON DELETE CASCADE,
     updated_by text NOT NULL REFERENCES td4.users(id) ON DELETE CASCADE,
 
-    cpu_usage_percent real NOT NULL DEFAULT '30.0',
-    memory_usage_mb real NOT NULL DEFAULT '64.0',
-    disk_usage_mb real NOT NULL DEFAULT '64.0',
-    max_time_secs real NOT NULL DEFAULT '10.0'
+    cpu_period integer NOT NULL DEFAULT 100000,
+    cpu_quota integer NOT NULL DEFAULT   10000,
+    memory_usage_mb integer NOT NULL DEFAULT 64,
+    disk_usage_mb integer NOT NULL DEFAULT 64,
+    max_time_secs integer NOT NULL DEFAULT 10
 );
 CREATE INDEX upserted_by_run_configs_index ON td4.run_configs (created_by, updated_by);
 INSERT INTO td4.run_configs(display_name, created_by, updated_by)

@@ -72,6 +72,8 @@ func main() {
 			continue
 		}
 
+		log.Print("Test results:")
+
 		for ix := range suites {
 			suite := suites[ix]
 			fmt.Println(suite.Name)
@@ -98,19 +100,62 @@ func runContainer(
 	q *db.Queries,
 	dbase *sql.DB,
 	runid int32) ([]junit.Suite, error) {
+	const mega = 1024 * 1024
+
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: dockerImageName,
 		Cmd:   []string{"pytest", "--junitxml=./test_result.xml", "-rp", "./test/test.py"},
-	}, nil, nil, "")
+	}, &container.HostConfig{
+		Resources: container.Resources{
+			Memory:     int64(conf.MemoryUsageMb * mega),
+			MemorySwap: int64(conf.MemoryUsageMb * mega),
+			CPUPeriod:  int64(conf.CpuPeriod),
+			CPUQuota:   int64(conf.CpuQuota),
+		},
+	},
+		nil, "")
+
 	if err != nil {
 		return nil, err
 	}
 
 	defer func() {
-		_ = cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{
-			RemoveLinks:   true,
+		log.Print("removing container")
+
+		err = cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{
 			RemoveVolumes: true,
 			Force:         true})
+
+		if err != nil {
+			log.Printf("error while removing container: %v", err)
+		}
+	}()
+
+	go func() {
+		const oneSecond = time.Duration(1) * time.Second
+
+		id := resp.ID
+
+		time.Sleep(time.Duration(conf.MaxTimeSecs) * time.Second)
+
+		containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+		if err != nil {
+			log.Printf("error listing containers: %v", err)
+		}
+
+		for ix := range containers {
+			c := containers[ix]
+			if c.ID == id {
+				log.Printf("timeout! stopping container id=%v", id)
+
+				to := oneSecond
+
+				err = cli.ContainerStop(ctx, id, &to)
+				if err != nil {
+					log.Printf("error stopping container after timeout: %v", err)
+				}
+			}
+		}
 	}()
 
 	err = runRun(ctx, cli, &resp, tes, sol, conf)
@@ -136,7 +181,9 @@ func reportResults(
 	// get test output!
 	r, _, err := cli.CopyFromContainer(ctx, resp.ID, "/test_result.xml")
 
-	defer func() { _ = r.Close() }()
+	if r != nil {
+		defer func() { _ = r.Close() }()
+	}
 
 	if err != nil {
 		return nil, err
