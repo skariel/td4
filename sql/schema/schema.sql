@@ -14,18 +14,6 @@ CREATE TABLE td4.users (
 INSERT INTO td4.users(id, display_name, email, avatar)
 VALUES ('admin', 'admin', '', '');
 
-CREATE TABLE td4.tests (
-    id SERIAL PRIMARY KEY,
-    ts_created timestamptz DEFAULT now() NOT NULL,
-    ts_updated timestamptz DEFAULT now() NOT NULL,
-    created_by text NOT NULL REFERENCES td4.users(id) ON DELETE CASCADE,
-    updated_by text NOT NULL REFERENCES td4.users(id) ON DELETE CASCADE,
-
-    title text NOT NULL,
-    descr text DEFAULT ''::text NOT NULL
-);
-CREATE INDEX upserted_by_tests_index ON td4.tests (created_by, updated_by);
-
 
 CREATE TABLE td4.test_codes (
     id SERIAL PRIMARY KEY,
@@ -34,13 +22,13 @@ CREATE TABLE td4.test_codes (
     created_by text NOT NULL REFERENCES td4.users(id) ON DELETE CASCADE,
     updated_by text NOT NULL REFERENCES td4.users(id) ON DELETE CASCADE,
 
-    test_id integer NOT NULL REFERENCES td4.tests(id) ON DELETE CASCADE,
+    title text NOT NULL,
+    descr text NOT NULL,
     code text NOT NULL,
     is_private bool NOT NULL,
     is_draft bool DEFAULT false NOT NULL
 );
 CREATE INDEX upserted_by_test_codes_index ON td4.test_codes (created_by, updated_by);
-CREATE INDEX test_id_test_codes_index ON td4.test_codes (test_id, is_private, is_draft);
 
 
 CREATE TABLE td4.solution_codes (

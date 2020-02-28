@@ -132,14 +132,14 @@ func runContainer(
 	}()
 
 	go func() {
-		const oneSecond = time.Duration(1) * time.Second
+		const one = 1 // ddont ask ;)
 
 		id := resp.ID
 
 		time.Sleep(time.Duration(conf.MaxTimeSecs) * time.Second)
 
-		containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
-		if err != nil {
+		containers, errg := cli.ContainerList(ctx, types.ContainerListOptions{})
+		if errg != nil {
 			log.Printf("error listing containers: %v", err)
 		}
 
@@ -148,7 +148,7 @@ func runContainer(
 			if c.ID == id {
 				log.Printf("timeout! stopping container id=%v", id)
 
-				to := oneSecond
+				to := time.Duration(one) * time.Second
 
 				err = cli.ContainerStop(ctx, id, &to)
 				if err != nil {
@@ -295,7 +295,6 @@ func runRun(
 	case <-statusCh:
 	}
 
-	// TODO: check for timeout
 	return nil
 }
 

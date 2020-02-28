@@ -7,52 +7,40 @@ DO UPDATE SET display_name=$2, email=$3, avatar=$4;
 -- name: CleanPendingRunsPerUSer :exec
 DELETE FROM td4.pending_runs_per_user WHERE total < 1;
 
--- name: GetTestsByUser :many
-SELECT * FROM td4.tests
-WHERE created_by=$1
-ORDER BY title ASC;
-
--- name: GetTestsByDate :many
-SELECT
-    t.id,
-    t.title,
-    t.descr,
-    t.ts_created,
-    u.display_name,
-    u.id AS created_by,
-    u.avatar
-FROM td4.tests t
-JOIN td4.users u
-ON t.created_by = u.id
-ORDER BY t.ts_created DESC;
-
--- name: GetTestCodesByTest :many
+-- name: GetTestCodesByUser :many
 SELECT *
 FROM td4.test_codes
-WHERE test_id = $1;
+WHERE created_by = $1
+LIMIT 10 OFFSET $2;
 
--- name: GetTestByID :one
+-- name: GetTestCodeByID :one
+SELECT *
+FROM td4.test_codes
+WHERE id = $1;
+
+-- name: GetTestCodeByIDWithCreator :one
 SELECT
     t.id,
+    t.ts_created,
+    t.ts_updated,
+    t.created_by,
     t.title,
     t.descr,
-    t.ts_created,
+    t.code,
+    t.is_draft,
     u.display_name,
     u.id AS created_by,
     u.avatar
-FROM td4.tests t
+FROM td4.test_codes t
 JOIN td4.users u
 ON t.created_by = u.id
-WHERE t.id = $1
-ORDER BY t.ts_created DESC;
-
--- name: GetTestCodeByID :one
-SELECT * FROM td4.test_codes
-WHERE id=$1;
+WHERE t.id = $1;
 
 -- name: GetSolutionsByCode :many
 SELECT * FROM td4.solution_codes
-WHERE test_code_id=$1;
+WHERE test_code_id=$1
+LIMIT 10 OFFSET $2;
+
 
 -- name: GetSolutionByID :one
 SELECT * FROM td4.solution_codes
@@ -61,10 +49,6 @@ WHERE id=$1;
 -- name: GetConfByDiplayName :one
 SELECT * FROM td4.run_configs
 WHERE display_name=$1;
-
--- name: GetUsersByID :many
-SELECT * FROM td4.users
-ORDER BY id ASC;
 
 -- name: FetchSomeRun :many
 WITH pending_run AS (
@@ -92,14 +76,9 @@ WHERE id = (
 )
 RETURNING *;
 
--- name: InsertTest :one
-INSERT INTO td4.tests(created_by, updated_by, title, descr)
-VALUES ($1, $1, $2, $3)
-RETURNING *;
-
 -- name: InsertTestCode :one
-INSERT INTO td4.test_codes(created_by, updated_by, test_id, code, is_private)
-VALUES ($1, $1, $2, $3, false)
+INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code, is_private)
+VALUES ($1, $1, $2, $3, $4, false)
 RETURNING *;
 
 -- name: InsertSolutionCode :one
