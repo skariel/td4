@@ -72,6 +72,12 @@ func main() {
 		if err != nil {
 			log.Printf("error while cleaning pending tasks per use: %v", err)
 		}
+
+		log.Println("cleaning long runs")
+		err = q.FailLongRuns(context.Background())
+		if err != nil {
+			log.Printf("error while cleaning long runs: %v", err)
+		}
 	})
 
 	// serve!

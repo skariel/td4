@@ -141,7 +141,7 @@ func runContainer(
 	}()
 
 	go func() {
-		const one = 1 // dont ask ;)
+		const one = 1 // dont ask...
 
 		id := resp.ID
 
@@ -152,10 +152,18 @@ func runContainer(
 			log.Printf("error listing containers: %v", err)
 		}
 
+		// only kill container if still listed...
 		for ix := range containers {
 			c := containers[ix]
 			if c.ID == id {
-				log.Printf("timeout! stopping container id=%v", id)
+				log.Printf("timeout! stopping container id=%v and ending run id=%v with status=stop", id, runid)
+
+				err = q.EndRunByID(ctx, db.EndRunByIDParams{
+					ID:     runid,
+					Status: "stop"})
+				if err != nil {
+					log.Printf("error reporting stop status for long running run: %v", err)
+				}
 
 				to := time.Duration(one) * time.Second
 
@@ -163,6 +171,8 @@ func runContainer(
 				if err != nil {
 					log.Printf("error stopping container after timeout: %v", err)
 				}
+
+				break
 			}
 		}
 	}()
@@ -231,7 +241,7 @@ func reportResults(
 	}
 
 	// checking error at end of transaction
-	_ = tq.UpdateRunStatusByID(ctx, db.UpdateRunStatusByIDParams{
+	_ = tq.EndRunByID(ctx, db.EndRunByIDParams{
 		ID:     runid,
 		Status: status})
 

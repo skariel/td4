@@ -114,13 +114,21 @@ INSERT INTO td4.run_results(run_id, status, title, output)
 VALUES($1, $2, $3, $4)
 RETURNING *;
 
--- name: UpdateRunStatusByID :exec
+-- name: EndRunByID :exec
 UPDATE td4.runs
 SET
     ts_end=NOW(),
     status=$2
 WHERE
     id=$1;
+
+
+-- name: FailLongRuns :exec
+UPDATE td4.runs r
+SET status = 'stop', ts_end = NOW()
+WHERE r.status = 'wip' AND NOW() - r.ts_start > (
+    SELECT max_time_secs FROM td4.run_configs rc WHERE r.run_config = rc.display_name
+);
 
 
 
