@@ -172,7 +172,6 @@ func runContainer(
 }
 
 func reportResults(
-	// TODO: report result of run
 	ctx context.Context,
 	cli *client.Client,
 	resp *container.ContainerCreateCreatedBody,
@@ -217,7 +216,7 @@ func reportResults(
 	}
 
 	// checking error at end of transaction
-	_ = tq.EndRunByID(ctx, db.EndRunByIDParams{
+	_ = tq.UpdateRunStatusByID(ctx, db.UpdateRunStatusByIDParams{
 		ID:     runid,
 		Status: status})
 
@@ -300,7 +299,7 @@ func runRun(
 }
 
 func getCodesAndConf(ctx context.Context, run *db.Td4Run, q *db.Queries) (*db.Td4SolutionCode, *db.Td4TestCode, *db.Td4RunConfig, error) {
-	sol, err := q.GetSolutionByID(ctx, run.SolutionCodeID)
+	sol, err := q.RAWGetSolutionCodeByID(ctx, run.SolutionCodeID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -310,7 +309,7 @@ func getCodesAndConf(ctx context.Context, run *db.Td4Run, q *db.Queries) (*db.Td
 		return nil, nil, nil, err
 	}
 
-	conf, err := q.GetConfByDiplayName(ctx, run.RunConfig)
+	conf, err := q.GetConfByDisplayName(ctx, run.RunConfig)
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -62,11 +62,16 @@ ON s.test_code_id = t.id
 JOIN td4.users u
 ON t.created_by = u.id
 JOIN td4.runs r
-ON s.id = r.solution_code_id;
+ON s.id = r.solution_code_id
+WHERE s.id = $1;
 
 -- name: GetConfByDisplayName :one
 SELECT * FROM td4.run_configs
-WHERE display_name=$1;
+WHERE display_name = $1;
+
+-- name: RAWGetSolutionCodeByID :one
+SELECT * FROM td4.solution_codes
+WHERE id = $1;
 
 -- name: FetchSomeRun :many
 WITH pending_run AS (
