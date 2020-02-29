@@ -72,6 +72,16 @@ func main() {
 			continue
 		}
 
+		if suites == nil {
+			log.Print("not results to show")
+			continue
+		}
+
+		if len(suites) == 0 {
+			log.Print("zero results")
+			continue
+		}
+
 		log.Print("Test results:")
 
 		for ix := range suites {
@@ -112,8 +122,7 @@ func runContainer(
 			CPUPeriod:  int64(conf.CpuPeriod),
 			CPUQuota:   int64(conf.CpuQuota),
 		},
-	},
-		nil, "")
+	}, nil, "")
 
 	if err != nil {
 		return nil, err
@@ -132,7 +141,7 @@ func runContainer(
 	}()
 
 	go func() {
-		const one = 1 // ddont ask ;)
+		const one = 1 // dont ask ;)
 
 		id := resp.ID
 
@@ -183,6 +192,8 @@ func reportResults(
 
 	if r != nil {
 		defer func() { _ = r.Close() }()
+	} else {
+		return nil, errors.New("could not find reults xml file")
 	}
 
 	if err != nil {
@@ -193,6 +204,10 @@ func reportResults(
 
 	if err != nil {
 		return nil, err
+	}
+
+	if xml == nil {
+		return nil, errors.New("could not read result xml contents")
 	}
 
 	suites, err := junit.Ingest(xml)
