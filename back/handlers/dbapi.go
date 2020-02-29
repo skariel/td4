@@ -68,16 +68,6 @@ func CreateTestCode(w http.ResponseWriter, r *http.Request) {
 	rj(w, testCode)
 }
 
-// WIP
-// needed:
-// add stats trigger for each test
-// get tests (pagination, title, descr, no code, created_by, avatar) (all / per user)
-// get runs (pagination, test and sol title, descr, created_by, avatar) (all / per user, and per test)
-// get run (status, runtime, test and solution title, descr, code, created_by, avatar) (one, per id)
-// update frontend with new api endpoints
-// remove old endpoints below
-// fail text if no xml file!
-
 // AllTests display a user list of tests
 // func AllTests(w http.ResponseWriter, r *http.Request) {
 // 	q := GetQuerierFromContext(r)

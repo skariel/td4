@@ -160,7 +160,7 @@ func runContainer(
 
 				err = q.EndRunByID(ctx, db.EndRunByIDParams{
 					ID:     runid,
-					Status: "stop"})
+					Status: db.Td4TypeRunStatusStop})
 				if err != nil {
 					log.Printf("error reporting stop status for long running run: %v", err)
 				}
