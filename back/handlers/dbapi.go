@@ -76,6 +76,7 @@ func CreateTestCode(w http.ResponseWriter, r *http.Request) {
 // get run (status, runtime, test and solution title, descr, code, created_by, avatar) (one, per id)
 // update frontend with new api endpoints
 // remove old endpoints below
+// fail text if no xml file!
 
 // AllTests display a user list of tests
 // func AllTests(w http.ResponseWriter, r *http.Request) {

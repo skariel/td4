@@ -25,8 +25,11 @@ CREATE TABLE td4.test_codes (
     title text NOT NULL,
     descr text NOT NULL,
     code text NOT NULL,
-    is_private bool NOT NULL,
-    is_draft bool DEFAULT false NOT NULL
+
+    total_pass integer NOT NULL DEFAULT 0,
+    total_fail integer NOT NULL DEFAULT 0,
+    total_wip  integer NOT NULL DEFAULT 0,
+    total_pending integer NOT NULL DEFAULT 0
 );
 CREATE INDEX upserted_by_test_codes_index ON td4.test_codes (created_by, updated_by);
 
@@ -39,12 +42,27 @@ CREATE TABLE td4.solution_codes (
     updated_by text NOT NULL REFERENCES td4.users(id) ON DELETE CASCADE,
 
     test_code_id integer NOT NULL REFERENCES td4.test_codes(id) ON DELETE CASCADE,
-    code text NOT NULL,
-    is_private bool NOT NULL,
-    is_draft bool DEFAULT false NOT NULL
+    code text NOT NULL
 );
 CREATE INDEX upserted_by_solution_codes_index ON td4.test_codes (created_by, updated_by);
-CREATE INDEX test_code_id_solution_codes_index ON td4.solution_codes (test_code_id, is_private, is_draft);
+CREATE INDEX test_code_id_solution_codes_index ON td4.solution_codes (test_code_id);
+
+-- automatically insert run when a solution is added
+
+CREATE FUNCTION td4.function_insert_solution() RETURNS trigger
+LANGUAGE plpgsql
+AS $$BEGIN
+    INSERT INTO td4.runs(created_by, updated_by, solution_code_id, run_config)
+    VALUES (NEW.created_by, NEW.updated_by, NEW.id, 'default');
+    RETURN NEW;
+END$$;
+
+DO LANGUAGE plpgsql
+$$BEGIN
+CREATE TRIGGER trigger_insert_solution
+AFTER INSERT ON td4.solution_codes
+FOR EACH ROW EXECUTE FUNCTION td4.function_insert_solution();
+END$$;
 
 
 CREATE TABLE td4.run_configs (
@@ -87,7 +105,6 @@ CREATE INDEX status_runs_index ON td4.runs (status);
 CREATE INDEX created_by_runs_index ON td4.runs (created_by, status);
 CREATE INDEX upserted_by_runs_index ON td4.runs (created_by, updated_by);
 
-
 -- results can be used to store unit test metadata, and later on also actual results
 CREATE TYPE td4.type_run_result_status
 AS ENUM ('pass', 'fail', 'skip', 'stop', 'todo');
@@ -117,9 +134,11 @@ CREATE TABLE td4.pending_runs_per_user (
     total integer NOT NULL default 1
 );
 CREATE INDEX user_id_pending_runs_per_user_index ON td4.pending_runs_per_user (user_id);
+CREATE INDEX total_pending_runs_per_user_index ON td4.pending_runs_per_user (total);
 
+-- automatically update pending runs per user and test when a run is added
 
-CREATE FUNCTION td4.function_insert_run() RETURNS trigger
+CREATE FUNCTION td4.function_insert_run()  RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
     INSERT INTO td4.pending_runs_per_user(user_id)
@@ -127,6 +146,11 @@ AS $$BEGIN
     ON CONFLICT (user_id)
     DO UPDATE
     SET user_id = NEW.created_by, total = EXCLUDED.total + 1;
+
+    UPDATE td4.test_codes AS test
+    SET total_pending = total_pending + 1
+    WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+
     RETURN NEW;
 END$$;
 
@@ -137,6 +161,70 @@ AFTER INSERT ON td4.runs
 FOR EACH ROW EXECUTE FUNCTION td4.function_insert_run();
 END$$;
 
+-- automatically update test when a run is updated
+
+CREATE FUNCTION td4.function_update_run() RETURNS trigger
+LANGUAGE plpgsql
+AS $$BEGIN
+    IF OLD.status = 'pending' AND NEW.status = 'wip' THEN
+        -- pending -> wip
+        UPDATE td4.test_codes AS test
+        SET total_pending = total_pending - 1, total_wip = total_wip + 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+    ELSEIF OLD.status = 'wip' AND NEW.status != 'pass' THEN
+        -- wip -> fail
+        UPDATE td4.test_codes AS test
+        SET total_wip = total_wip - 1, total_fail = total_fail + 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+    ELSEIF OLD.status = 'wip' AND NEW.status = 'pass' THEN
+        -- wip -> pass
+        UPDATE td4.test_codes AS test
+        SET total_wip = total_wip - 1, total_pass = total_pass + 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+    END IF;
+
+    RETURN NEW;
+END$$;
+
+DO LANGUAGE plpgsql
+$$BEGIN
+CREATE TRIGGER trigger_update_run
+AFTER UPDATE ON td4.runs
+FOR EACH ROW EXECUTE FUNCTION td4.function_update_run();
+END$$;
+
+-- automatically update test when a run is removed
+
+CREATE FUNCTION td4.function_delete_run() RETURNS trigger
+LANGUAGE plpgsql
+AS $$BEGIN
+    IF OLD.status = 'pending' THEN
+        UPDATE td4.test_codes AS test
+        SET total_pending = total_pending - 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
+    ELSEIF OLD.status = 'wip' THEN
+        UPDATE td4.test_codes AS test
+        SET total_wip = total_wip - 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
+    ELSEIF OLD.status = 'pass' THEN
+        UPDATE td4.test_codes AS test
+        SET total_pass = total_pass - 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
+    ELSEIF OLD.status != 'pass' THEN
+        UPDATE td4.test_codes AS test
+        SET total_fail = total_fail - 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
+    END IF;
+
+    RETURN OLD;
+END$$;
+
+DO LANGUAGE plpgsql
+$$BEGIN
+CREATE TRIGGER trigger_delete_run
+BEFORE DELETE ON td4.runs
+FOR EACH ROW EXECUTE FUNCTION td4.function_delete_run();
+END$$;
 
 -- automatic updating `ts_updated` columns
 
@@ -161,5 +249,63 @@ BEGIN
         EXECUTE 'CREATE TRIGGER trigger_set_timestamp BEFORE UPDATE ON td4.' || t || ' FOR EACH ROW EXECUTE FUNCTION td4.function_set_timestamp();';
     END LOOP;
 END$$;
+
+
+-- some tests!
+
+-- INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code)
+-- VALUES ('admin', 'admin', 'title', 'descr', 'code1');
+
+-- INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code)
+-- VALUES ('admin', 'admin', 'title', 'descr', 'code2');
+
+-- INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code)
+-- VALUES ('admin', 'admin', 'title', 'descr', 'code3');
+
+
+
+
+-- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
+-- VALUES ('admin', 'admin', 1, 'code');
+
+-- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
+-- VALUES ('admin', 'admin', 2, 'code');
+-- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
+-- VALUES ('admin', 'admin', 2, 'code');
+
+-- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
+-- VALUES ('admin', 'admin', 3, 'code');
+-- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
+-- VALUES ('admin', 'admin', 3, 'code');
+-- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
+-- VALUES ('admin', 'admin', 3, 'code');
+
+
+
+-- UPDATE td4.runs
+-- SET status='wip'
+-- WHERE id=1;
+
+-- UPDATE td4.runs
+-- SET status='wip'
+-- WHERE id=2;
+-- UPDATE td4.runs
+-- SET status='fail'
+-- WHERE id=2;
+
+-- UPDATE td4.runs
+-- SET status='wip'
+-- WHERE id=3;
+-- UPDATE td4.runs
+-- SET status='pass'
+-- WHERE id=3;
+
+-- DELETE FROM td4.runs AS r
+-- WHERE r.id=4;
+
+
+
+
+
 
 
