@@ -31,7 +31,7 @@
 </style>
 
 <svelte:head>
-	<title>Sapper project template</title>
+	<title>Tesoto</title>
 </svelte:head>
 
 <input bind:value={tname} placeholder="Test Title">
@@ -39,9 +39,11 @@
 	add test
 </button>
 
+
+
+<!-- Present all tests -->
+
 <h2 style="margin:35px">All Tests</h2>
-
-
 {#each tests as t }
 	<div style="display:flex; align-items:center;margin-top:20px;border:1px solid #333333; border-radius:15px;padding:10px">
 		<img style="width:40px; height:40px; margin-right:20px;" src={t.avatar} alt="avatar"/>
