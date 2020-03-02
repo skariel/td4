@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"../../sql/db"
+	"github.com/gorilla/mux"
 )
 
 // CreateSolution creates a solution to some test code
@@ -68,105 +70,44 @@ func CreateTestCode(w http.ResponseWriter, r *http.Request) {
 	rj(w, testCode)
 }
 
-// AllTests display a user list of tests
-// func AllTests(w http.ResponseWriter, r *http.Request) {
-// 	q := GetQuerierFromContext(r)
+// AllTests give all tests, plus avatar user, etc.
+func AllTests(w http.ResponseWriter, r *http.Request) {
+	q := GetQuerierFromContext(r)
 
-// 	tests, err := q.GetTestsByDate(context.Background())
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
+	vars := mux.Vars(r)
 
-// 	rj(w, tests)
-// }
+	offset, err := strconv.Atoi(vars["offset"])
+	if err != nil {
+		ise(w, err)
+		return
+	}
 
-// // TestByID get a test by id..
-// func TestByID(w http.ResponseWriter, r *http.Request) {
-// 	q := GetQuerierFromContext(r)
-// 	vars := mux.Vars(r)
+	tests, err := q.GetTestCodes(context.Background(), int32(offset))
+	if err != nil {
+		ise(w, err)
+		return
+	}
 
-// 	id, err := strconv.Atoi(vars["id"])
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
+	rj(w, tests)
+}
 
-// 	test, err := q.GetTestByID(context.Background(), int32(id))
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
+// SolutionCodesByTest give all solutions bya a test ID
+func SolutionCodesByTest(w http.ResponseWriter, r *http.Request) {
+	q := GetQuerierFromContext(r)
 
-// 	rj(w, test)
-// }
+	vars := mux.Vars(r)
 
-// // CodesByTest get all codes of test by test ID
-// func CodesByTest(w http.ResponseWriter, r *http.Request) {
-// 	q := GetQuerierFromContext(r)
-// 	vars := mux.Vars(r)
+	offset, err := strconv.Atoi(vars["offset"])
+	if err != nil {
+		ise(w, err)
+		return
+	}
 
-// 	id, err := strconv.Atoi(vars["id"])
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
+	tests, err := q.GetSolutionCodesByTest(context.Background(), int32(offset))
+	if err != nil {
+		ise(w, err)
+		return
+	}
 
-// 	codes, err := q.GetTestCodesByTest(context.Background(), int32(id))
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
-
-// 	rj(w, codes)
-// }
-
-// // TestCodeByID get test code by ID
-// func TestCodeByID(w http.ResponseWriter, r *http.Request) {
-// 	q := GetQuerierFromContext(r)
-// 	vars := mux.Vars(r)
-
-// 	id, err := strconv.Atoi(vars["id"])
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
-
-// 	code, err := q.GetTestCodeByID(context.Background(), int32(id))
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
-
-// 	rj(w, code)
-// }
-
-// // SolutionsByCode get solutions code by test code ID
-// func SolutionsByCode(w http.ResponseWriter, r *http.Request) {
-// 	q := GetQuerierFromContext(r)
-// 	vars := mux.Vars(r)
-
-// 	id, err := strconv.Atoi(vars["id"])
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
-
-// 	offset, err := strconv.Atoi(vars["offset"])
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
-
-// 	code, err := q.GetSolutionsByCode(context.Background(),
-// 		db.GetSolutionsByCodeParams{
-// 			TestCodeID: int32(id),
-// 			Offset:     int32(offset),
-// 		})
-// 	if err != nil {
-// 		ise(w, err)
-// 		return
-// 	}
-
-// 	rj(w, code)
-// }
+	rj(w, tests)
+}

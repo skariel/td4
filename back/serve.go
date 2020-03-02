@@ -51,15 +51,10 @@ func main() {
 	r.HandleFunc("/auth/github/callback", handlers.SocialCallbackHandler).Methods("GET")
 
 	// custom handlers
-	r.HandleFunc("/api/tests", handlers.AllTests).Methods("GET")
-	r.HandleFunc("/api/test/{id}", handlers.TestByID).Methods("GET")
-	r.HandleFunc("/api/test/{id}/codes", handlers.CodesByTest).Methods("GET")
-	r.HandleFunc("/api/code/{id}", handlers.TestCodeByID).Methods("GET")
-	r.HandleFunc("/api/code/{id}/solutions", handlers.SolutionsByCode).Methods("GET")
-	r.HandleFunc("/api/users", handlers.Users).Methods("GET")
-	r.HandleFunc("/api/create_test", handlers.CreateTest).Methods("POST")
-	r.HandleFunc("/api/create_code", handlers.CreateCode).Methods("POST")
+	r.HandleFunc("/api/create_test", handlers.CreateTestCode).Methods("POST")
 	r.HandleFunc("/api/create_solution", handlers.CreateSolution).Methods("POST")
+	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")
+	r.HandleFunc("/api/solutions_by_test/{id}", handlers.SolutionCodesByTest).Methods("GET")
 
 	// apply middlewares
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
@@ -115,6 +110,7 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 
 func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("h ===== %v", r.Header)
 		startTime := time.Now()
 
 		// enable CORS
