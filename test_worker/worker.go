@@ -104,7 +104,7 @@ func main() {
 func runContainer(
 	ctx context.Context,
 	cli *client.Client,
-	tes *db.Td4TestCode,
+	tes *db.GetTestCodeByIDRow,
 	sol *db.Td4SolutionCode,
 	conf *db.Td4RunConfig,
 	q *db.Queries,
@@ -293,7 +293,7 @@ func runRun(
 	ctx context.Context,
 	cli *client.Client,
 	resp *container.ContainerCreateCreatedBody,
-	tes *db.Td4TestCode,
+	tes *db.GetTestCodeByIDRow,
 	sol *db.Td4SolutionCode,
 	_ *db.Td4RunConfig) error {
 	err := copyToDocker(ctx, cli, resp, tes.Code, "test/test.py")
@@ -323,7 +323,11 @@ func runRun(
 	return nil
 }
 
-func getCodesAndConf(ctx context.Context, run *db.Td4Run, q *db.Queries) (*db.Td4SolutionCode, *db.Td4TestCode, *db.Td4RunConfig, error) {
+func getCodesAndConf(
+	ctx context.Context,
+	run *db.Td4Run,
+	q *db.Queries,
+) (*db.Td4SolutionCode, *db.GetTestCodeByIDRow, *db.Td4RunConfig, error) {
 	sol, err := q.RAWGetSolutionCodeByID(ctx, run.SolutionCodeID)
 	if err != nil {
 		return nil, nil, nil, err

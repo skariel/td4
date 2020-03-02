@@ -8,9 +8,15 @@ DO UPDATE SET display_name=$2, email=$3, avatar=$4;
 DELETE FROM td4.pending_runs_per_user WHERE total == 0;
 
 -- name: GetTestCodeByID :one
-SELECT *
-FROM td4.test_codes
-WHERE id = $1;
+SELECT
+    t.*,
+    u.display_name,
+    u.avatar
+FROM td4.test_codes t
+JOIN td4.users u
+ON t.created_by = u.id
+WHERE t.id = $1
+LIMIT 1;
 
 -- name: GetTestCodes :many
 SELECT

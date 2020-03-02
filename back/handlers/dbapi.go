@@ -70,6 +70,27 @@ func CreateTestCode(w http.ResponseWriter, r *http.Request) {
 	rj(w, testCode)
 }
 
+// GetTestByID get a single test by id
+func GetTestByID(w http.ResponseWriter, r *http.Request) {
+	q := GetQuerierFromContext(r)
+
+	vars := mux.Vars(r)
+
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		ise(w, err)
+		return
+	}
+
+	test, err := q.GetTestCodeByID(context.Background(), int32(id))
+	if err != nil {
+		ise(w, err)
+		return
+	}
+
+	rj(w, test)
+}
+
 // AllTests give all tests, plus avatar user, etc.
 func AllTests(w http.ResponseWriter, r *http.Request) {
 	q := GetQuerierFromContext(r)

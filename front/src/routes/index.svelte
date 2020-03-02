@@ -6,17 +6,14 @@
 	let user = getContext('user');
 	let tests = [];
 	let tname = "";
+	let offset = 0;
 
 	onMount(initial_load);
 
 	async function initial_load() {
-		const res = await get(user, 'tests')
-		if (res.status === 200) {
-			if (res.data==null) {
-				res.data = []
-			}
-			tests = res.data;
-		}
+		const res = await get('alltests/'+offset)
+		tests = res.data;
+		console.log(tests)
 	}
 
 	async function create_test() {

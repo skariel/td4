@@ -53,6 +53,7 @@ func main() {
 	// custom handlers
 	r.HandleFunc("/api/create_test", handlers.CreateTestCode).Methods("POST")
 	r.HandleFunc("/api/create_solution", handlers.CreateSolution).Methods("POST")
+	r.HandleFunc("/api/test/{id}", handlers.GetTestByID).Methods("GET")
 	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")
 	r.HandleFunc("/api/solutions_by_test/{id}", handlers.SolutionCodesByTest).Methods("GET")
 
@@ -110,7 +111,6 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 
 func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("h ===== %v", r.Header)
 		startTime := time.Now()
 
 		// enable CORS
@@ -125,7 +125,7 @@ func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.
 		}
 
 		// get user and put into context
-		user := handlers.GetUserFromAuthorizationHeader(r)
+		user := handlers.GetUserFromJWTAuthCookie(r)
 		r = handlers.WithUserInContext(user, r)
 
 		// put querier into context
