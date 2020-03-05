@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/danilopolani/gocialite"
@@ -123,16 +124,14 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "http://localhost:3000", http.StatusFound)
 }
 
-// GetUserFromJWTAuthCookie get user from jwt_uth cookkie
-func GetUserFromJWTAuthCookie(r *http.Request) *db.Td4User {
-	jwtAuth, err := r.Cookie("jwt_auth")
-	if err != nil {
+// GetUserFromAuthorizationHeader from jwt
+func GetUserFromAuthorizationHeader(r *http.Request) *db.Td4User {
+	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+	if len(auth) != 2 || auth[0] != "Bearer" {
 		return nil
 	}
 
-	auth := jwtAuth.String()
-
-	token, err := jwt.Parse(auth, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(auth[1], func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}

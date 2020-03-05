@@ -125,7 +125,7 @@ func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.
 		}
 
 		// get user and put into context
-		user := handlers.GetUserFromJWTAuthCookie(r)
+		user := handlers.GetUserFromAuthorizationHeader(r)
 		r = handlers.WithUserInContext(user, r)
 
 		// put querier into context

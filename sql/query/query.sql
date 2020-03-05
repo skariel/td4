@@ -106,13 +106,13 @@ WHERE id = (
 RETURNING *;
 
 -- name: InsertTestCode :one
-INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code, is_private)
-VALUES ($1, $1, $2, $3, $4, false)
+INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code)
+VALUES ($1, $1, $2, $3, $4)
 RETURNING *;
 
 -- name: InsertSolutionCode :one
-INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code, is_private)
-VALUES ($1, $1, $2, $3, false)
+INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
+VALUES ($1, $1, $2, $3)
 RETURNING *;
 
 -- name: InsertRunResult :one

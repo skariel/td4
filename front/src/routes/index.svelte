@@ -5,24 +5,14 @@
 
 	let user = getContext('user');
 	let tests = [];
-	let tname = "";
 	let offset = 0;
 
 	onMount(initial_load);
 
 	async function initial_load() {
-		const res = await get('alltests/'+offset)
+		const res = await get(user, 'alltests/'+offset)
 		tests = res.data;
 		console.log(tests)
-	}
-
-	async function create_test() {
-		const res = await post(user, 'create_test', {title:tname, descr:""})
-		if (res.status == 200) {
-			res.data.avatar = user.avatar
-			tests = [res.data, ...tests];
-			tname = ""
-		}
 	}
 
 </script>
@@ -34,14 +24,8 @@
 	<title>Tesoto</title>
 </svelte:head>
 
-<input bind:value={tname} placeholder="Test Title">
-<button on:click={()=>create_test()} disabled={tname.length == 0}>
-	add test
-</button>
 
-
-
-<!-- Present all tests -->
+<a href="/test/new">New Test</a>
 
 <h2 style="margin:35px">All Tests</h2>
 {#each tests as t }

@@ -4,6 +4,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -45,7 +46,7 @@ func CreateSolution(w http.ResponseWriter, r *http.Request) {
 func CreateTestCode(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r)
 	q := GetQuerierFromContext(r)
-
+	log.Printf("UUUUUUU=%v", user)
 	if user == nil {
 		forb(w)
 		return
