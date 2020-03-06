@@ -4,7 +4,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -27,8 +26,6 @@ func CreateSolution(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&solutionCodeParams)
 	solutionCodeParams.CreatedBy = user.ID
-
-	log.Printf("YYYYYYYYYY=%v", solutionCodeParams)
 
 	if err != nil {
 		ise(w, err)
