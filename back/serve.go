@@ -55,7 +55,7 @@ func main() {
 	r.HandleFunc("/api/create_solution", handlers.CreateSolution).Methods("POST")
 	r.HandleFunc("/api/test/{id}", handlers.GetTestByID).Methods("GET")
 	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")
-	r.HandleFunc("/api/solutions_by_test/{id}", handlers.SolutionCodesByTest).Methods("GET")
+	r.HandleFunc("/api/solutions_by_test/{id}/{offset}", handlers.SolutionCodesByTest).Methods("GET")
 
 	// apply middlewares
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")

@@ -50,8 +50,9 @@ JOIN td4.users u
 ON s.created_by = u.id
 JOIN td4.runs r
 ON s.id = r.solution_code_id
+WHERE s.test_code_id = $1
 ORDER BY s.ts_updated DESC
-LIMIT 10 OFFSET $1;
+LIMIT 10 OFFSET $2;
 
 -- name: GetSolutionCodeByID :one
 SELECT

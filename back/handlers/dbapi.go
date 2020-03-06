@@ -4,7 +4,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -46,7 +45,7 @@ func CreateSolution(w http.ResponseWriter, r *http.Request) {
 func CreateTestCode(w http.ResponseWriter, r *http.Request) {
 	user := GetUserFromContext(r)
 	q := GetQuerierFromContext(r)
-	log.Printf("UUUUUUU=%v", user)
+
 	if user == nil {
 		forb(w)
 		return
@@ -119,13 +118,23 @@ func SolutionCodesByTest(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		ise(w, err)
+		return
+	}
+
 	offset, err := strconv.Atoi(vars["offset"])
 	if err != nil {
 		ise(w, err)
 		return
 	}
 
-	tests, err := q.GetSolutionCodesByTest(context.Background(), int32(offset))
+	tests, err := q.GetSolutionCodesByTest(context.Background(),
+		db.GetSolutionCodesByTestParams{
+			TestCodeID: int32(id),
+			Offset:     int32(offset),
+		})
 	if err != nil {
 		ise(w, err)
 		return

@@ -12,7 +12,6 @@
 	async function initial_load() {
 		const res = await get(user, 'alltests/'+offset)
 		tests = res.data;
-		console.log(tests)
 	}
 
 </script>
@@ -32,6 +31,6 @@
 	<div style="display:flex; align-items:center;margin-top:20px;border:1px solid #333333; border-radius:15px;padding:10px">
 		<img style="width:40px; height:40px; margin-right:20px;" src={t.avatar} alt="avatar"/>
 		<h3>{t.id}: {t.title}</h3>
-		<a style="margin-left:10px;" href={"/test/"+t.id}>more...</a>
+		<a style="margin-left:10px;" href={"/test/"+t.id+"/0"}>more...</a>
 	</div>
 {/each}
