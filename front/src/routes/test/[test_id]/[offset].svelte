@@ -35,7 +35,7 @@
 	st {test_id}!</title>
 </svelte:head>
 
-<a href="">add solution</a>
+<a href={'/test/'+test_id+'/new_solution'}>add solution</a>
 
 <h4>test code:</h4>
 <pre><code>

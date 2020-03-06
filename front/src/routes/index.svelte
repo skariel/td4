@@ -1,3 +1,10 @@
+<!-- TODO: error handling -->
+<!-- TODO: my tests -->
+<!-- TODO: my solutions -->
+<!-- TODO: hide test / solution -->
+<!-- TODO: user profile / stats -->
+<!-- TODO: private tests -->
+
 <script>
 
 	import {onMount, getContext} from 'svelte';

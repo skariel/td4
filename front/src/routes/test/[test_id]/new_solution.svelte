@@ -26,8 +26,8 @@
 	}
 
 	async function create_solution() {
-		const res = await post(user, 'create_test', {
-				test_code_id : test_id,
+		const res = await post(user, 'create_solution', {
+				test_code_id : parseInt(test_id),
 				code       : scode,
 			})
 		if (res.status == 200) {
