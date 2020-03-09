@@ -1,14 +1,16 @@
 <!-- TODO: error handling -->
 <!-- TODO: my tests -->
 <!-- TODO: my solutions -->
-<!-- TODO: hide test / solution -->
+<!-- TODO: delete test / solution -->
 <!-- TODO: user profile / stats -->
 <!-- TODO: private tests -->
+<!-- TODO: draft / publish tests -->
 
 <script>
 
 	import {onMount, getContext} from 'svelte';
 	import {post, get} from './utils';
+	import TestCard from '../components/TestCard.svelte'
 
 	let user = getContext('user');
 	let tests = [];
@@ -24,20 +26,34 @@
 </script>
 
 <style>
+	.tests {
+		display: grid;
+		grid-template-columns: 50% 50%;
+		grid-gap: 10px;
+	}
+
+	.title {
+		display: flex;
+		align-items: center;
+	}
+
+	.title a {
+		margin-left: auto;
+	}
+
 </style>
 
 <svelte:head>
-	<title>Tesoto</title>
+	<title>TesTus</title>
 </svelte:head>
 
+<div class="title">
+	<h1>All Tests</h1>
+	<a href="/test/new">New Test</a>
+</div>
 
-<a href="/test/new">New Test</a>
-
-<h2 style="margin:35px">All Tests</h2>
-{#each tests as t }
-	<div style="display:flex; align-items:center;margin-top:20px;border:1px solid #333333; border-radius:15px;padding:10px">
-		<img style="width:40px; height:40px; margin-right:20px;" src={t.avatar} alt="avatar"/>
-		<h3>{t.id}: {t.title}</h3>
-		<a style="margin-left:10px;" href={"/test/"+t.id+"/0"}>more...</a>
-	</div>
-{/each}
+<div class="tests">
+	{#each tests as t }
+		<TestCard test={t} />
+	{/each}
+</div>
