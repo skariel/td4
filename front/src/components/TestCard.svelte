@@ -5,12 +5,14 @@
 <style>
     .main {
         display:       grid;
-        border:        1px solid #333333;
-        border-radius: 15px;
+        background-color: rgb(236,230,226);
+        border:        1px solid #ffffff;
+        border-radius: 7px;
         padding:       10px;
         cursor:        pointer;
 
-        grid-template-rows: 30px 25px auto 30px 50px;        
+        grid-template-columns: 25% 25% 25% 25%;        
+        grid-template-rows: auto auto auto auto auto;        
     }
 
     .main:hover {
@@ -55,25 +57,21 @@
     .failed {
         grid-column: 1;
         grid-row: 5;
-        padding: 5px;
     }
 
     .passed {
         grid-column: 2;
         grid-row: 5;
-        padding: 5px;
     }
 
     .pending {
         grid-column: 3;
         grid-row: 5;
-        padding: 5px;
     }
 
     .wip {
         grid-column: 4;
         grid-row: 5;
-        padding: 5px;
     }
 </style>
 
@@ -81,47 +79,17 @@
 
     <div class="topbar">
         <img class="avatar" src={test.avatar} alt="avatar"/>
-        <p class="displayname">{test.display_name}</p>
-        <p class="testid">{test.id}</p>
+        <h4 class="displayname">{test.display_name}</h4>
+        <h4 class="testid">{test.id}</h4>
     </div>
-    <p class="testtitle">Title: {test.title}</p>
-    <p class="testdescr">Descr: {test.descr}</p>
-    <p class="updated">u: {test.ts_updated}</p>
+    <h4 class="testtitle">Title: {test.title}</h4>
+    <h4 class="testdescr">Descr: {test.descr}</h4>
+    <h4 class="updated">u: {test.ts_updated}</h4>
 
-    <p class="failed">fail {test.total_fail}</p>
-    <p class="passed">pass {test.total_pass}</p>
-    <p class="pending">pending {test.total_pending}</p>
-    <p class="wip">wip {test.total_wip}</p>
+    <h4 class="failed">fail {test.total_fail}</h4>
+    <h4 class="passed">pass {test.total_pass}</h4>
+    <h4 class="pending">pending {test.total_pending}</h4>
+    <h4 class="wip">wip {test.total_wip}</h4>
 
 </div>
 
-
-<!-- 
-
-avatar: "https://avatars2.githubusercontent.com/u/2347816?v=4"
-​
-code: "lkj"
-​
-created_by: "github:2347816"
-​
-descr: "lkj"
-​
-display_name: "skariel"
-​
-id: 9
-​
-title: "lkj"
-​
-total_fail: 0
-​
-total_pass: 0
-​
-total_pending: 0
-​
-total_wip: 0
-​
-ts_created: "2020-03-06T00:32:59.065238+02:00"
-​
-ts_updated: "2020-03-06T00:32:59.065238+02:00"
-​
-updated_by: "github:2347816" -->

@@ -27,9 +27,8 @@
 
 <style>
 	.tests {
-		display: grid;
-		grid-template-columns: 50% 50%;
-		grid-gap: 10px;
+ 		column-count: 2;
+		column-gap: 1em;
 	}
 
 	.title {
@@ -39,6 +38,12 @@
 
 	.title a {
 		margin-left: auto;
+	}
+
+	.testcard {
+		display: inline-block;
+		margin-top: 10px;
+		width: 100%;		
 	}
 
 </style>
@@ -54,6 +59,8 @@
 
 <div class="tests">
 	{#each tests as t }
-		<TestCard test={t} />
+		<div class="testcard">
+			<TestCard test={t} />
+		</div>
 	{/each}
 </div>
