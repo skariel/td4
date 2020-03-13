@@ -25,9 +25,7 @@
 <style>
 </style>
 
-<svelte:head>
-	<title>Tesoto</title>
-</svelte:head>
+<title>New test</title>
 
 <h4>Title</h4>
 <input bind:value={tname} placeholder="Test Title">

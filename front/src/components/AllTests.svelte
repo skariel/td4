@@ -13,9 +13,9 @@
 
 	onMount(initial_load);
 
-	async function initial_load() {
-		const res = await get(user, 'alltests/'+offset*10)
-		tests = res.data;
+	function initial_load() {
+		get(user, 'alltests/'+offset*10)
+			.then((r)=>{tests=r.data;})
 	}
 
 </script>

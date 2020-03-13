@@ -13,8 +13,6 @@
 <style>
 </style>
 
-<svelte:head>
-	<title>TesTus</title>
-</svelte:head>
+<title>TesTus</title>
 
 <AllTests offset="0"></AllTests>

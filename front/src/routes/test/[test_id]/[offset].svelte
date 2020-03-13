@@ -12,35 +12,70 @@
 	import { get } from '../../utils';
 
     export let test_id;
-    export let offset;
-	let user  = getContext('user');
+	export let offset;
+	
+	const user  = getContext('user');
 	let test  = [];
 	let solutions = [];
 
 	onMount(initial_load);
 
-	async function initial_load() {
-		const _tes = get(user, 'test/'+test_id)
-		const _sol = get(user, 'solutions_by_test/'+test_id+'/'+offset)
-		test = (await _tes).data
-		solutions = (await _sol).data
+	function initial_load() {
+		get(user, 'test/'+test_id)
+			.then((r)=>{test=r.data;})
+		get(user, 'solutions_by_test/'+test_id+'/'+offset)
+			.then((r)=>{solutions=r.data;})
 	}
 </script>
 
 <style>
+    .top {
+        display:       flex;
+    }
+    .avatar {
+        width:    40px;
+        height:   40px;
+        margin-right:20px;        
+    }
+
+    .displayname {
+
+    }
+
+    .testid {
+        margin-left: auto;
+    }
+
+	.code {
+		background-color: #333333;
+		min-height: 100px;
+	}
+
+	code {
+		background-color: #00000000;
+		color: antiquewhite;
+	}
+
 </style>
 
-<svelte:head>
-	<title>just a te
-	st {test_id}!</title>
-</svelte:head>
+<title>test {test_id}</title>
+
+<div class="top">
+	<img class="avatar" src={test.avatar} alt="avatar"/>
+	<h4 class="displayname">{test.display_name}</h4>
+	<h4 class="testid">{test.id}</h4>
+</div>
+
+<pre class="code">
+	<code>
+		{test.code}
+	</code>
+</pre>
+
+<!-- <h4 class="updated">updated: {test.ts_updated}</h4> -->
 
 <a href={'/test/'+test_id+'/new_solution'}>add solution</a>
 
-<h4>test code:</h4>
-<pre><code>
-	{test.code}
-</code></pre>
 
 <h4>solutions:</h4>
 

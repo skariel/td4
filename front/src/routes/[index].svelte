@@ -14,8 +14,7 @@
 <style>
 </style>
 
-<svelte:head>
-	<title>TesTus</title>
-</svelte:head>
+<title>TesTus</title>
+
 <AllTests offset="{index}"></AllTests>
 

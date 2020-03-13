@@ -8,21 +8,21 @@
 
 
 <script>
-
 	import { onMount, getContext } from 'svelte';
 	import { goto } from '@sapper/app';
 	import { get, post } from '../../utils';
 
-	const user = getContext('user')
 	export let test_id;
+
+	const user = getContext('user')
 	let test  = [];
 	let scode = "";
 
 	onMount(initial_load);
 
 	async function initial_load() {
-		const _tes = get(user, 'test/'+test_id)
-		test = (await _tes).data
+		get(user, 'test/'+test_id)
+			.then((r)=>{test=r.data})
 	}
 
 	async function create_solution() {
@@ -40,9 +40,7 @@
 <style>
 </style>
 
-<svelte:head>
-	<title>Tesoto</title>
-</svelte:head>
+<title>New solution</title>
 
 <h4>test code:</h4>
 <pre><code>
