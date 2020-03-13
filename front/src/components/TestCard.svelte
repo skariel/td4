@@ -75,7 +75,7 @@
     }
 </style>
 
-<div class="main" onclick="location.href='{"/test/"+test.id+"/0"}';">
+<div class="main" onclick="location.href='{"/test?id="+test.id+"&page=0"}';">
 
     <div class="topbar">
         <img class="avatar" src={test.avatar} alt="avatar"/>

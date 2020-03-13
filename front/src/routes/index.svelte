@@ -7,39 +7,32 @@
 <!-- TODO: draft / publish tests -->
 
 <script>
-	import {onMount, getContext} from 'svelte';
-	import {get} from '../routes/utils';
-	import { goto } from '@sapper/app';
+	import { onMount, getContext } from 'svelte';
+	import { get, init_location_change_event } from '../routes/utils';
 	import TestCard from '../components/TestCard.svelte'
 
 	let user = getContext('user');
 	let tests = [];
 
-	const url = new URL(window.location)
-	let offset = url.searchParams.get("page")
-	if (offset == null) {
-		offset = "0";
-	}
-	offset = parseInt(offset)
+	let page = null;
+	let href = null;
 
-	onMount(initial_load);
+	onMount(()=>{
+		init_location_change_event()
+		window.addEventListener('locationchange', load_data)
+		load_data()
+	});
 
-	function initial_load() {
-		get(user, 'alltests/'+offset*10)
+	function load_data() {
+		const url = new URL(location)
+		page = url.searchParams.get("page")
+		if (page == null) {
+			page = "0";
+		}
+		page = parseInt(page)
+		get(user, 'alltests/'+page*10)
 			.then((r)=>{tests=r.data;})
 	}
-
-	function next() {
-		offset += 1;
-		initial_load()
-	}
-
-	function prev() {
-		offset -= 1;
-		initial_load()
-	}
-
-
 </script>
 
 <title>TesTus</title>
@@ -95,15 +88,13 @@
 </div>
 
 <div class="bottom">
-    {#if offset==0}
-	    <a href="/?page={offset+1}" on:click={next}>Next Page</a>
+    {#if page==0}
+	    <a href="/?page={page+1}">Next Page</a>
     {:else if tests.length < 10}
-	    <a href="/?page={offset-1}" on:click={prev}>Prev Page</a>
+	    <a href="/?page={page-1}">Prev Page</a>
     {:else}        
-	    <a href="/?page={offset-1}" on:click={prev}>Prev Page</a>
+	    <a href="/?page={page-1}">Prev Page</a>
         <div class="filler" />
-	    <a href="/?page={offset+1}" on:click={next}>Next Page</a>
+	    <a href="/?page={page+1}">Next Page</a>
     {/if}
 </div>
-
-
