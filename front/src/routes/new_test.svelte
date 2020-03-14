@@ -1,13 +1,16 @@
 <script>
-
-	import { getContext } from 'svelte';
+	import { post, getUser } from './utils';
+	import { onMount } from 'svelte';
 	import { goto } from '@sapper/app';
-	import { post } from './utils';
 
-	const user = getContext('user')
+	let user = null;
 	let tname = "";
 	let tdescr = "";
 	let tcode = "";
+
+    onMount(()=>{
+        user = getUser();
+    })
 
 	async function create_test() {
 		const res = await post(user, 'create_test', {

@@ -1,28 +1,39 @@
 <script>
-	import { onMount, getContext } from 'svelte';
-	import { get } from './utils';
+	import { onMount, onDestroy, getContext } from 'svelte';
+	import { get, getUser } from './utils';
 
-	const user  = getContext('user');
-    let offset = 0;
-    let test_id = 0;
-	let test  = [];
+	let user      = null;
+    let page      = 0;
+    let test_id   = 0;
+	let test      = [];
 	let solutions = [];
 
-	// onMount(initial_load);
+	onMount(()=>{
+		user = getUser();
+		window.addEventListener("locationchange", load_data);
+		load_data()
+	});
 
-	// function initial_load() {
-    //     const url = new URL(location)
-    //     test_id = url.searchParams.get("id")
-    //     offset = url.searchParams.get("page")
-    //     if (offset == null) {
-    //         offset = "0";
-    //     }
-    //     offset = parseInt(offset)
-	// 	get(user, 'test/'+test_id)
-	// 		.then((r)=>{test=r.data;})
-	// 	get(user, 'solutions_by_test/'+test_id+'/'+offset)
-	// 		.then((r)=>{solutions=r.data;})
-	// }
+	onDestroy(()=>{
+		window.removeEventListener("locationchange", load_data);
+	})
+
+	function load_data() {
+        if (window.location.pathname != '/test') {
+            return
+        }
+		const url = new URL(location)
+		page = url.searchParams.get("page")
+		if (page == null) {
+			page = "0";
+		}
+		page = parseInt(page)
+        test_id = url.searchParams.get("id")
+		get(user, 'test/'+test_id)
+			.then((r)=>{test=r.data;})
+		get(user, 'solutions_by_test/'+test_id+'/'+page*10)
+			.then((r)=>{solutions=r.data;})
+	}
 </script>
 
 <style>

@@ -1,13 +1,5 @@
-<!-- TODO: error handling -->
-<!-- TODO: my tests -->
-<!-- TODO: my solutions -->
-<!-- TODO: delete test / solution -->
-<!-- TODO: user profile / stats -->
-<!-- TODO: private tests -->
-<!-- TODO: draft / publish tests -->
-
 <script>
-	import { onMount, onDestroy, getContext } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { get, getUser } from './utils';
 	import TestCard from '../components/TestCard.svelte'
 
@@ -22,11 +14,13 @@
 	});
 
 	onDestroy(()=>{
-		console.log("Destroy!!!")
 		window.removeEventListener("locationchange", load_data);
 	})
 
 	function load_data() {
+        if (window.location.pathname != '/') {
+            return
+        }
 		const url = new URL(location)
 		page = url.searchParams.get("page")
 		if (page == null) {
