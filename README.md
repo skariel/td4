@@ -44,3 +44,12 @@ docker
 sqlc
 api + static rendered site
 
+
+update packages
+---------------------
+go get -u all
+edit package.json for new versions
+npm update --save
+npm update --save-dev
+
+

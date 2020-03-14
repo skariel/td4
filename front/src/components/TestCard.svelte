@@ -9,7 +9,7 @@
         border:        1px solid #ffffff;
         border-radius: 7px;
         padding:       10px;
-        cursor:        pointer;
+        /* cursor:        pointer; */
 
         grid-template-columns: 25% 25% 25% 25%;        
         grid-template-rows: auto auto auto auto auto;        
@@ -75,14 +75,15 @@
     }
 </style>
 
-<div class="main" onclick="location.href='{"/test?id="+test.id+"&page=0"}';">
+<!-- <div class="main" onclick="location.href='{"/test?id="+test.id+"&page=0"}';"> -->
+<div class="main">
 
     <div class="topbar">
         <img class="avatar" src={test.avatar} alt="avatar"/>
         <h4 class="displayname">{test.display_name}</h4>
         <h4 class="testid">{test.id}</h4>
     </div>
-    <h4 class="testtitle">Title: {test.title}</h4>
+    <h4 class="testtitle">Title: <a href='{"/test?id="+test.id+"&page=0"}'>{test.title}</a></h4>
     <h4 class="testdescr">Descr: {test.descr}</h4>
     <h4 class="updated">u: {test.ts_updated}</h4>
 

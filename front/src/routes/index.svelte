@@ -7,21 +7,24 @@
 <!-- TODO: draft / publish tests -->
 
 <script>
-	import { onMount, getContext } from 'svelte';
-	import { get, init_location_change_event } from '../routes/utils';
+	import { onMount, onDestroy, getContext } from 'svelte';
+	import { get, getUser } from './utils';
 	import TestCard from '../components/TestCard.svelte'
 
-	let user = getContext('user');
 	let tests = [];
-
+	let user = null;
 	let page = null;
-	let href = null;
 
 	onMount(()=>{
-		init_location_change_event()
-		window.addEventListener('locationchange', load_data)
+		user = getUser();
+		window.addEventListener("locationchange", load_data);
 		load_data()
 	});
+
+	onDestroy(()=>{
+		console.log("Destroy!!!")
+		window.removeEventListener("locationchange", load_data);
+	})
 
 	function load_data() {
 		const url = new URL(location)
@@ -76,7 +79,7 @@
 
 <div class="title">
 	<h1>All Tests</h1>
-	<a href="/test/new">New Test</a>
+	<a href="/new_test">New Test</a>
 </div>
 
 <div class="tests">
@@ -98,3 +101,4 @@
 	    <a href="/?page={page+1}">Next Page</a>
     {/if}
 </div>
+

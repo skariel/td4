@@ -2,7 +2,7 @@
 
 	import { getContext } from 'svelte';
 	import { goto } from '@sapper/app';
-	import { post } from '../utils';
+	import { post } from './utils';
 
 	const user = getContext('user')
 	let tname = "";
