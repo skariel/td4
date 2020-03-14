@@ -8,14 +8,17 @@
 	let test      = [];
 	let solutions = [];
 
-	onMount(()=>{
-		user = getUser();
+	onMount(async ()=>{
+        user = getUser();
 		window.addEventListener("locationchange", load_data);
 		load_data()
 	});
 
-	onDestroy(()=>{
-		window.removeEventListener("locationchange", load_data);
+	onDestroy(async ()=>{
+        // TODO: otherwise running on node?! a bug?!
+        if (process.browser == true) {
+            window.removeEventListener("locationchange", load_data);
+        }
 	})
 
 	function load_data() {

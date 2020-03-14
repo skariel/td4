@@ -5,7 +5,7 @@
 
 	export let segment;
 	
-	onMount(()=>{
+	onMount(async ()=>{
 		init_location_change_event();
 	})
 

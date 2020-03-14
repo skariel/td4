@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "compression": "*",
-    "polka": "*",
+    "polka": "^0.5.2",
     "sirv": "*"
   },
   "devDependencies": {
