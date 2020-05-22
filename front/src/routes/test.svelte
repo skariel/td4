@@ -46,7 +46,7 @@
     .avatar {
         width:    40px;
         height:   40px;
-        margin-right:20px;        
+        margin-right:20px;
     }
 
     .displayname {

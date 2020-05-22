@@ -8,7 +8,7 @@ async function myfetch(user, r, method, body) {
         body: body,
         headers: {
             'Authorization': 'Bearer ' + user.jwt_auth,
-        }        
+        }
     });
     var data = []
     if (res.status == 200) {
@@ -17,7 +17,7 @@ async function myfetch(user, r, method, body) {
             data = []
         }
     }
-    return {data: data, status: res.status}        
+    return {data: data, status: res.status}
 }
 
 export async function post(user, r, o) {
