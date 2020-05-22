@@ -17,20 +17,20 @@
     "sirv": "*"
   },
   "devDependencies": {
-    "@babel/core": "*",
+    "@babel/core": "^7.9.6",
     "@babel/plugin-syntax-dynamic-import": "*",
-    "@babel/plugin-transform-runtime": "*",
-    "@babel/preset-env": "*",
-    "@babel/runtime": "*",
-    "@rollup/plugin-commonjs": "*",
-    "@rollup/plugin-node-resolve": "*",
-    "@rollup/plugin-replace": "*",
+    "@babel/plugin-transform-runtime": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/runtime": "^7.9.6",
+    "@rollup/plugin-commonjs": "^12.0.0",
+    "@rollup/plugin-node-resolve": "^8.0.0",
+    "@rollup/plugin-replace": "^2.3.2",
     "npm-run-all": "*",
-    "rollup": "*",
+    "rollup": "^2.10.7",
     "rollup-plugin-babel": "*",
-    "rollup-plugin-svelte": "*",
+    "rollup-plugin-svelte": "^5.2.2",
     "rollup-plugin-terser": "*",
-    "sapper": "*",
-    "svelte": "*"
+    "sapper": "^0.27.13",
+    "svelte": "^3.22.3"
   }
 }
