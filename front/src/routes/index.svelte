@@ -55,7 +55,7 @@
 	.testcard {
 		display: inline-block;
 		margin-top: 10px;
-		width: 100%;		
+		width: 100%;
 	}
 
 	.bottom {
@@ -92,7 +92,7 @@
 	    <a href="/?page={page+1}">Next Page</a>
     {:else if tests.length < 10}
 	    <a href="/?page={page-1}">Prev Page</a>
-    {:else}        
+    {:else}
 	    <a href="/?page={page-1}">Prev Page</a>
         <div class="filler" />
 	    <a href="/?page={page+1}">Next Page</a>

@@ -122,7 +122,7 @@ func runContainer(
 			CPUPeriod:  int64(conf.CpuPeriod),
 			CPUQuota:   int64(conf.CpuQuota),
 		},
-	}, nil, "")
+	}, nil, nil, "")
 
 	if err != nil {
 		return nil, err

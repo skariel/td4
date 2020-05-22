@@ -4,12 +4,12 @@
 	import Nav from '../components/Nav.svelte'
 
 	export let segment;
-	
+
 	onMount(async ()=>{
 		init_location_change_event();
 	})
 
-	
+
 </script>
 
 <style>
