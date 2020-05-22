@@ -11,8 +11,8 @@
         padding:       10px;
         /* cursor:        pointer; */
 
-        grid-template-columns: 25% 25% 25% 25%;        
-        grid-template-rows: auto auto auto auto auto;        
+        grid-template-columns: 25% 25% 25% 25%;
+        grid-template-rows: auto auto auto auto auto;
     }
 
     .main:hover {
@@ -23,7 +23,7 @@
     .avatar {
         width:    40px;
         height:   40px;
-        margin-right:20px;        
+        margin-right:20px;
     }
 
     .displayname {
