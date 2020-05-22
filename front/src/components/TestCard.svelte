@@ -6,18 +6,16 @@
     .main {
         display:       grid;
         background-color: rgb(236,230,226);
-        border:        1px solid #ffffff;
+        border:        3px solid #ffffff;
         border-radius: 7px;
         padding:       10px;
-        /* cursor:        pointer; */
-
         grid-template-columns: 25% 25% 25% 25%;
         grid-template-rows: auto auto auto auto auto;
     }
 
     .main:hover {
         border:        3px solid rgb(255,62,0);
-        padding: 8px;
+        padding: 10px;
     }
 
     .avatar {

@@ -1,5 +1,5 @@
 <script>
-	import { onMount, onDestroy, getContext } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { get, getUser } from './utils';
 
 	let user      = null;

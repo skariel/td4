@@ -1,8 +1,12 @@
 <script>
-	import { getContext } from 'svelte';
-	import { staticpath } from '../routes/utils'
-	let user = getContext('user');
-	if (user==null) {user={}}
+	import { staticpath, getUser } from '../routes/utils'
+
+	import { onMount } from 'svelte';
+
+	let user = {};
+    onMount(()=>{
+        user = getUser();
+    })
 
 	export let segment;
 </script>
