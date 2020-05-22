@@ -53,3 +53,10 @@ npm update --save
 npm update --save-dev
 
 
+
+
+# TODO: implement new_solution page
+# TODO: limit characters in test / solution desc
+# TODO: limit code in test
+# TODO: limit code in solution
+# TODO: limit title length

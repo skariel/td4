@@ -110,10 +110,3 @@ npm install -D @sveltejs/svelte-virtual-list
 
 Sapper is in early development, and may have the odd rough edge here and there. Please be vocal over on the [Sapper issue tracker](https://github.com/sveltejs/sapper/issues).
 
-
-
-# TODO: implement new_solution page
-# TODO: limit characters in test / solution desc
-# TODO: limit code in test
-# TODO: limit code in solution
-# TODO: limit title length
