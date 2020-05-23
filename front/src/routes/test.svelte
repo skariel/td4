@@ -85,7 +85,7 @@
 
 <!-- <h4 class="updated">updated: {test.ts_updated}</h4> -->
 
-<a href={'/test/'+test_id+'/new_solution'}>add solution</a>
+<a href={'/new_solution?test_id='+test_id}>add solution</a>
 
 
 <h4>solutions:</h4>

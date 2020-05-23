@@ -55,7 +55,7 @@ func main() {
 
 	// custom handlers
 	r.HandleFunc("/api/create_test", handlers.CreateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen)).Methods("POST")
-	r.HandleFunc("/api/create_solution", handlers.CreateSolution).Methods("POST")
+	r.HandleFunc("/api/create_solution", handlers.CreateSolutionCodeConfigurator(maxCodeLen)).Methods("POST")
 	r.HandleFunc("/api/test/{id}", handlers.GetTestByID).Methods("GET")
 	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")
 	r.HandleFunc("/api/solutions_by_test/{id}/{offset}", handlers.SolutionCodesByTest).Methods("GET")
