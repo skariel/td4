@@ -36,6 +36,10 @@ function apipath(p) {
     return basepath+'api/'+p
 }
 
+export function loginpath() {
+    return basepath+'auth/github'
+}
+
 export function staticpath(p) {
     return basepath+'static/'+p
 }

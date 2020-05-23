@@ -1,10 +1,10 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-	import { get, getUser } from './utils';
+	import { get, getUser, loginpath } from './utils';
 	import TestCard from '../components/TestCard.svelte'
 
 	let tests = [];
-	let user = null;
+	let user = {};
 	let page = null;
 
 	onMount(()=>{
@@ -76,7 +76,11 @@
 
 <div class="title">
 	<h1>All Tests</h1>
-	<a href="/new_test">New Test</a>
+	{#if user['avatar'] != null}
+		<a href="/new_test">New Test</a>
+	{:else}
+		<a href={loginpath()}>Login to create new test</a>
+	{/if}
 </div>
 
 <div class="tests">

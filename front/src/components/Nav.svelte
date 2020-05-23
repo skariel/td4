@@ -1,5 +1,5 @@
 <script>
-	import { staticpath, getUser } from '../routes/utils'
+	import { staticpath, getUser, loginpath } from '../routes/utils'
 
 	import { onMount } from 'svelte';
 
@@ -80,7 +80,7 @@
 		<li><a class:selected='{segment === "about"}' href='about'>about</a></li>
 		<li class="avatar">
 			{#if user['avatar'] == null}
-				<a href="https://localhost:8081/auth/github">
+				<a href={loginpath()}>
 					<img class="avatar" alt="login with github" src={staticpath("login_with_github.png")} />
 				</a>
 			{:else}
