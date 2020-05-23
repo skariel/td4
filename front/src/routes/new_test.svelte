@@ -1,4 +1,4 @@
-<!-- TODO: warn of title, description and code limits -->
+<!-- TODO: save state, clear it when submitted -->
 <script>
 	import { post, getUser } from './utils';
 	import { onMount } from 'svelte';
@@ -24,6 +24,28 @@
 		}
 	}
 
+	function validate(tname, tdescr, tcode) {
+		if (tname.length == 0) {
+			return "missing title"
+		}
+		if (tname.length > 256) {
+			return `title is too long: ${tname.length} > 256`
+		}
+		if (tdescr.length == 0) {
+			return "description is missing"
+		}
+		if (tdescr.length > 2048) {
+			return `description is too long: ${tname.length} > 2048`
+		}
+		if (tcode.length == 0) {
+			return "code is missing"
+		}
+		if (tcode.length > 8192) {
+			return `code is too long: ${tname.length} > 8192`
+		}
+		return ""
+	}
+
 </script>
 
 <style>
@@ -40,7 +62,11 @@
 <h4 style="margin-top:20px;">Code</h4>
 <textarea style="width:100%; height:200px" bind:value={tcode} />
 
-<button  style="margin-top:20px;" on:click={()=>create_test()} disabled={tname.length == 0 || tdescr.length == 0 || tcode.length == 0}>
-	add test
-</button>
-
+<div>
+	{#if validate(tname, tdescr, tcode).length!=0}
+		<h5 style="margin-top:20px; color:red;">{validate(tname, tdescr, tcode)}</h5> 
+	{/if}
+	<button on:click={()=>create_test()} disabled={validate(tname, tdescr, tcode).length != 0}>
+		add test
+	</button>
+</div>

@@ -23,7 +23,7 @@ const (
 	corsOrigin                          = "*"
 	maxTitleLen                         = 256
 	maxDescLen                          = 2048
-	maxCodeLen                          = 9192
+	maxCodeLen                          = 8192
 )
 
 func main() {
