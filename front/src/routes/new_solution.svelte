@@ -12,7 +12,7 @@
     onMount(()=>{
 		user = getUser();
 		const url = new URL(location)
-		test_id = Number(url.searchParams.get("test_id"))
+		test_id = parseInt(url.searchParams.get("test_id"))
     })
 
 	async function create_test() {
