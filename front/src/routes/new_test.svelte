@@ -1,3 +1,4 @@
+<!-- TODO: warn of title, description and code limits -->
 <script>
 	import { post, getUser } from './utils';
 	import { onMount } from 'svelte';
@@ -31,15 +32,15 @@
 <title>New test</title>
 
 <h4>Title</h4>
-<input bind:value={tname} placeholder="Test Title">
+<input bind:value={tname}>
 
-<h4>Description</h4>
+<h4 style="margin-top:20px;">Description</h4>
 <textarea style="width:100%; height:200px" bind:value={tdescr} />
 
-<h4>Code</h4>
+<h4 style="margin-top:20px;">Code</h4>
 <textarea style="width:100%; height:200px" bind:value={tcode} />
 
-<button on:click={()=>create_test()} disabled={tname.length == 0 || tdescr.length == 0 || tcode.length == 0}>
+<button  style="margin-top:20px;" on:click={()=>create_test()} disabled={tname.length == 0 || tdescr.length == 0 || tcode.length == 0}>
 	add test
 </button>
 

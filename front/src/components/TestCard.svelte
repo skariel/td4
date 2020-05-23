@@ -40,11 +40,13 @@
     .testtitle {
         grid-column: 1 / 5;
         grid-row: 2;
+        word-wrap: break-word;
     }
 
     .testdescr {
         grid-column: 1 / 5;
         grid-row: 3;
+        word-wrap: break-word;
     }
 
     .updated {

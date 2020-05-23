@@ -21,6 +21,9 @@ const (
 	cleaningPendingRunsPerUSerEveryrHrs = 8.0
 	port                                = ":8081"
 	corsOrigin                          = "*"
+	maxTitleLen                         = 256
+	maxDescLen                          = 2048
+	maxCodeLen                          = 9192
 )
 
 func main() {
@@ -51,7 +54,7 @@ func main() {
 	r.HandleFunc("/auth/github/callback", handlers.SocialCallbackHandler).Methods("GET")
 
 	// custom handlers
-	r.HandleFunc("/api/create_test", handlers.CreateTestCode).Methods("POST")
+	r.HandleFunc("/api/create_test", handlers.CreateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen)).Methods("POST")
 	r.HandleFunc("/api/create_solution", handlers.CreateSolution).Methods("POST")
 	r.HandleFunc("/api/test/{id}", handlers.GetTestByID).Methods("GET")
 	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")

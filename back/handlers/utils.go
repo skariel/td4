@@ -40,6 +40,11 @@ func forb(w http.ResponseWriter) {
 	fmt.Fprint(w, "forbidden")
 }
 
+func expectationFailure(w http.ResponseWriter, err string) {
+	w.WriteHeader(http.StatusExpectationFailed)
+	fmt.Fprint(w, err)
+}
+
 func rj(w http.ResponseWriter, i interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 

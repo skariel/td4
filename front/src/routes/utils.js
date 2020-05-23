@@ -17,6 +17,13 @@ async function myfetch(user, r, method, body) {
             data = []
         }
     }
+    else {
+        data = await res.text();
+        if (data==null) {
+            data = ""
+        }
+        alert(data)
+    }
     return {data: data, status: res.status}
 }
 

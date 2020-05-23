@@ -4,6 +4,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -41,33 +42,48 @@ func CreateSolution(w http.ResponseWriter, r *http.Request) {
 	rj(w, solutionCode)
 }
 
-// CreateTestCode creates a new test
-func CreateTestCode(w http.ResponseWriter, r *http.Request) {
-	user := GetUserFromContext(r)
-	q := GetQuerierFromContext(r)
+// CreateTestCodeConfigurator returns a configured CreatetestCode handler
+func CreateTestCodeConfigurator(maxTitleLen int, maxDescLen int, maxCodeLen int) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := GetUserFromContext(r)
+		q := GetQuerierFromContext(r)
 
-	if user == nil {
-		forb(w)
-		return
+		if user == nil {
+			forb(w)
+			return
+		}
+
+		var testCodeParams db.InsertTestCodeParams
+		err := json.NewDecoder(r.Body).Decode(&testCodeParams)
+
+		if len(testCodeParams.Title) > maxTitleLen {
+			expectationFailure(w, fmt.Sprintf("title too long (%v > %v)", len(testCodeParams.Title), maxTitleLen))
+			return
+		}
+		if len(testCodeParams.Descr) > maxDescLen {
+			expectationFailure(w, fmt.Sprintf("description too long (%v > %v)", len(testCodeParams.Descr), maxDescLen))
+			return
+		}
+		if len(testCodeParams.Code) > maxCodeLen {
+			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(testCodeParams.Code), maxCodeLen))
+			return
+		}
+
+		testCodeParams.CreatedBy = user.ID
+
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		testCode, err := q.InsertTestCode(context.Background(), testCodeParams)
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		rj(w, testCode)
 	}
-
-	var testCodeParams db.InsertTestCodeParams
-	err := json.NewDecoder(r.Body).Decode(&testCodeParams)
-
-	testCodeParams.CreatedBy = user.ID
-
-	if err != nil {
-		ise(w, err)
-		return
-	}
-
-	testCode, err := q.InsertTestCode(context.Background(), testCodeParams)
-	if err != nil {
-		ise(w, err)
-		return
-	}
-
-	rj(w, testCode)
 }
 
 // GetTestByID get a single test by id
