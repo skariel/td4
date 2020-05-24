@@ -5,7 +5,7 @@ CREATE SCHEMA td4;
 CREATE TABLE td4.users (
     ts_created timestamptz DEFAULT now() NOT NULL,
     ts_updated timestamptz DEFAULT now() NOT NULL,
-    
+
     id text PRIMARY KEY,
     display_name text NOT NULL UNIQUE,
     email text NOT NULL UNIQUE,
