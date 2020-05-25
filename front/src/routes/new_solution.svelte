@@ -16,7 +16,7 @@
 		test_id = parseInt(url.searchParams.get("test_id"))
     })
 
-	async function create_test() {
+	async function create_solution() {
 		const res = await post(user, 'create_solution', {
 				test_code_id: test_id,
 				code        : $scode,
@@ -29,12 +29,12 @@
 
 	function validate(scode) {
 		if (scode.length == 0) {
-			return "code is missing"
+			return "code is missing";
 		}
 		if (scode.length > 8192) {
-			return `code is too long: ${tname.length} > 8192`
+			return `code is too long: ${scode.length} > 8192`;
 		}
-		return ""
+		return "";
 	}
 
 </script>
@@ -42,16 +42,20 @@
 <style>
 </style>
 
-<title>New test</title>
+<svelte:head>
+	<title>New Solution for Test {test_id}</title>
+</svelte:head>
+
+<h1>New solution for <a href={"/test?id="+test_id}>test {test_id}</a></h1>
 
 <h4 style="margin-top:20px;">Code</h4>
 <textarea style="width:100%; height:200px" bind:value={$scode} />
 
 <div>
-	{#if validate(scode).length!=0}
+	{#if validate($scode).length > 0}
 		<h5 style="margin-top:20px; color:red;">{validate($scode)}</h5> 
 	{/if}
-	<button on:click={()=>create_test()} disabled={validate($scode).length != 0}>
+	<button on:click={()=>create_solution()} disabled={validate($scode).length != 0}>
 		add solution
 	</button>
 </div>

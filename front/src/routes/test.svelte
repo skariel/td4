@@ -1,8 +1,9 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-	import { get, getUser } from './utils';
+	import { get, getUser, loginpath } from './utils';
+	import SolutionCard from '../components/SolutionCard.svelte'
 
-	let user      = null;
+	let user      = {};
     let page      = 0;
     let test_id   = 0;
 	let test      = [];
@@ -40,17 +41,28 @@
 </script>
 
 <style>
+	.solutions {
+ 		column-count: 2;
+		column-gap: 1em;
+	}
+
+	.solutioncard {
+		display: inline-block;
+		margin-top: 10px;
+		width: 100%;
+	}
+
     .top {
         display:       flex;
+    }
+    .teststat {
+        display:       flex;
+		margin-top:    0px; 
     }
     .avatar {
         width:    40px;
         height:   40px;
         margin-right:20px;
-    }
-
-    .displayname {
-
     }
 
     .testid {
@@ -66,16 +78,26 @@
 		background-color: #00000000;
 		color: antiquewhite;
 	}
+	.title {
+		display: flex;
+		align-items: center;
+	}
+	.title a {
+		margin-left: auto;
+	}
 
 </style>
 
-<title>test {test_id}</title>
+<svelte:head>
+	<title>Test {test_id}</title>
+</svelte:head>
 
 <div class="top">
 	<img class="avatar" src={test.avatar} alt="avatar"/>
 	<h4 class="displayname">{test.display_name}</h4>
-	<h4 class="testid">{test.id}</h4>
+	<h4 class="testid">test {test.id}</h4>
 </div>
+
 
 <pre class="code">
 	<code>
@@ -83,21 +105,34 @@
 	</code>
 </pre>
 
-<!-- <h4 class="updated">updated: {test.ts_updated}</h4> -->
+<div class="title">
+	{#if solutions.length > 0}
+		<h1>All Solutions</h1>
+	{:else}
+		<h1>No Solutions Yet!</h1>
+	{/if}
+	{#if user['avatar'] != null}
+		<a href={"/new_solution?test_id="+test_id}>Add Solution</a>
+	{:else}
+		<a href={loginpath()}>Login to add a solution</a>
+	{/if}
+</div>
 
-<a href={'/new_solution?test_id='+test_id}>add solution</a>
-
-
-<h4>solutions:</h4>
-
-{#each solutions as s }
-	<div  style="margin:15px;">
-		<h5>s:</h5>
-		<pre>
-			<code>
-				{s.code}
-			</code>
-		</pre>
-		<a href="/test/{test_id}/code/{s.id}">code id: {s.id}</a>
+{#if solutions.length > 0}
+	<div class="teststat">
+		<h4>fail: {test.total_fail}</h4>
+		<h4 style="margin-left:10px;">pass: {test.total_pass}</h4>
+		<h4 style="margin-left:10px;">pending: {test.total_pending}</h4>
+		<h4 style="margin-left:10px;">wip: {test.total_wip}</h4>
 	</div>
-{/each}
+{/if}
+
+<div class="solutions">
+	{#each solutions as s }
+		<div class="solutioncard">
+			<SolutionCard solution={s} />
+		</div>
+	{/each}
+</div>
+
+<!-- TODO: paging for solutions! -->

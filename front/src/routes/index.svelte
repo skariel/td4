@@ -74,15 +74,15 @@
 </style>
 
 <svelte:head>
-	<title>TesTus</title>
+	<title>Tests</title>
 </svelte:head>
 
 <div class="title">
 	<h1>All Tests</h1>
 	{#if user['avatar'] != null}
-		<a href="/new_test">New Test</a>
+		<a href="/new_test">Add Test</a>
 	{:else}
-		<a href={loginpath()}>Login to create new test</a>
+		<a href={loginpath()}>Login to add a test</a>
 	{/if}
 </div>
 

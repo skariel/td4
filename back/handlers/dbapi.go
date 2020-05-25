@@ -173,7 +173,7 @@ func SolutionCodesByTest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tests, err := q.GetSolutionCodesByTest(context.Background(),
+	solutions, err := q.GetSolutionCodesByTest(context.Background(),
 		db.GetSolutionCodesByTestParams{
 			TestCodeID: int32(id),
 			Offset:     int32(offset),
@@ -183,5 +183,26 @@ func SolutionCodesByTest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rj(w, tests)
+	rj(w, solutions)
+}
+
+// SolutionCodeByID give specific solution
+func SolutionCodeByID(w http.ResponseWriter, r *http.Request) {
+	q := GetQuerierFromContext(r)
+
+	vars := mux.Vars(r)
+
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		ise(w, err)
+		return
+	}
+
+	solution, err := q.GetSolutionCodeByID(context.Background(), int32(id))
+	if err != nil {
+		ise(w, err)
+		return
+	}
+
+	rj(w, solution)
 }
