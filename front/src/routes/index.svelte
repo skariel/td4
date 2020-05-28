@@ -1,6 +1,3 @@
-<!-- TODO: filter "my" tests  -->
-<!-- TODO: a page for "my" solutions -->
-
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { get, getUser, loginpath } from './utils';

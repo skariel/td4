@@ -64,7 +64,7 @@
 
 <h4 style="margin-top:10px;">Solution for <a href={"/test?id="+solution.test_code_id}>test {solution.test_code_id}</a></h4>
 
-<h4>{solution.status}</h4>
+<h4>status: {solution.status} {#if solution.status=='stop'} (timeout) {/if}</h4>
 <pre class="code">
 	<code>
 		{solution.code}

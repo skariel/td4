@@ -1,4 +1,3 @@
-<!-- TODO: save state, clear it when submitted, add a "clear" button -->
 <script>
 	import { post, getUser } from './utils';
 	import { onMount } from 'svelte';

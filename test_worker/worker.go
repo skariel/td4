@@ -73,7 +73,7 @@ func main() {
 		}
 
 		if suites == nil {
-			log.Print("not results to show")
+			log.Print("no results to show")
 			continue
 		}
 
