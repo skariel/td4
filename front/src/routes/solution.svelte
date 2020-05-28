@@ -19,7 +19,6 @@
 		solution=r.data;
 		r = await get(user, 'results_by_run/'+solution.run_id)
 		results=r.data;
-		console.log(results)
 	}
 </script>
 

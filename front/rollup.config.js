@@ -15,6 +15,7 @@ const onwarn = (warning, onwarn) => (warning.code === 'CIRCULAR_DEPENDENCY' && /
 
 export default {
 	client: {
+		preserveEntrySignatures: 'false',
 		input: config.client.input(),
 		output: config.client.output(),
 		plugins: [

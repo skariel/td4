@@ -108,6 +108,8 @@
 	<h4 class="testid">test {test.id}</h4>
 </div>
 
+<h3>Title: {test.title}</h3>
+<p>Description: {test.descr}</p>
 
 <pre class="code">
 	<code>
