@@ -40,7 +40,7 @@
 		get(user, 'test/'+test_id)
 			.then((r)=>{test=r.data;})
 		get(user, 'solutions_by_test/'+test_id+'/'+page*10)
-			.then((r)=>{solutions=r.data; console.log(r.data)})
+			.then((r)=>{solutions=r.data;})
 	}
 </script>
 

@@ -5,17 +5,21 @@
     let user          = {};
     let solution_id   = 0;
 	let solution      = [];
+	let results       = [];
 
 	onMount(async ()=>{
         user = getUser();
 		load_data()
 	});
 
-	function load_data() {
+	async function load_data() {
 		const url = new URL(location)
         solution_id = url.searchParams.get("id")
-		get(user, 'solution/'+solution_id)
-			.then((r)=>{solution=r.data;})
+		let r = await get(user, 'solution/'+solution_id)
+		solution=r.data;
+		r = await get(user, 'results_by_run/'+solution.run_id)
+		results=r.data;
+		console.log(results)
 	}
 </script>
 
@@ -60,14 +64,25 @@
 
 <h4 style="margin-top:10px;">Solution for <a href={"/test?id="+solution.test_code_id}>test {solution.test_code_id}</a></h4>
 
+<h4>{solution.status}</h4>
 <pre class="code">
 	<code>
 		{solution.code}
 	</code>
 </pre>
 
-<div class="title">
-<!-- TODO: implement showing results of run -->
-    <h1>Results: TODO!</h1>
-</div>
+{#if results.length > 0}
+	<div class="title">
+		<h1>Results:</h1>
+	</div>
+	<pre class="code">
+		<code>
+			{results[0].output.String}
+		</code>
+	</pre>
+{:else}
+	<div class="title">
+		<h1>No result yet</h1>
+	</div>
+{/if}
 
