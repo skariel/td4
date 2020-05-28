@@ -19,6 +19,7 @@ import (
 const (
 	httptimeoutSeconds                  = 3.0
 	cleaningPendingRunsPerUSerEveryrHrs = 8.0
+	cleaningLongRunsEveryrHrs           = 1.0
 	port                                = ":8081"
 	corsOrigin                          = "*"
 	maxTitleLen                         = 256
@@ -60,6 +61,7 @@ func main() {
 	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")
 	r.HandleFunc("/api/solutions_by_test/{id}/{offset}", handlers.SolutionCodesByTest).Methods("GET")
 	r.HandleFunc("/api/solution/{id}", handlers.SolutionCodeByID).Methods("GET")
+	r.HandleFunc("/api/results_by_run/{id}", handlers.ResultsByRun).Methods("GET")
 
 	// apply middlewares
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
@@ -72,7 +74,8 @@ func main() {
 		if err != nil {
 			log.Printf("error while cleaning pending tasks per use: %v", err)
 		}
-
+	})
+	go doEvery(cleaningLongRunsEveryrHrs*time.Hour, func() {
 		log.Println("cleaning long runs")
 		err = q.FailLongRuns(context.Background())
 		if err != nil {
@@ -86,6 +89,7 @@ func main() {
 }
 
 func doEvery(d time.Duration, fn func()) {
+	fn()
 	for range time.Tick(d) {
 		fn()
 	}

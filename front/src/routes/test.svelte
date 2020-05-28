@@ -22,6 +22,10 @@
         }
 	})
 
+	function params(page) {
+		return `/test?id=${test_id}&page=${page}`
+	}
+
 	function load_data() {
         if (window.location.pathname != '/test') {
             return
@@ -85,6 +89,12 @@
 	.title a {
 		margin-left: auto;
 	}
+	.bottom {
+		display: flex;
+		justify-content: center;
+		margin-top: 20px;
+	}
+
 
 </style>
 
@@ -107,9 +117,13 @@
 
 <div class="title">
 	{#if solutions.length > 0}
-		<h1>All Solutions</h1>
+		<h1>All solutions</h1>
 	{:else}
-		<h1>No Solutions Yet!</h1>
+		{#if page == 0}
+			<h1>No solutions yet!</h1>
+		{:else}
+			<h1>No solutions in this page!</h1>
+		{/if}
 	{/if}
 	{#if user['avatar'] != null}
 		<a href={"/new_solution?test_id="+test_id}>Add Solution</a>
@@ -135,4 +149,17 @@
 	{/each}
 </div>
 
-<!-- TODO: paging for solutions! -->
+<div class="bottom">
+    {#if page==0}
+		{#if solutions.length == 10}
+	    	<a href="{params(page+1)}">Next Page</a>
+		{/if}
+    {:else if solutions.length < 10}
+	    <a href="{params(page-1)}">Prev Page</a>
+    {:else}
+	    <a href="{params(page-1)}">Prev Page</a>
+        <div class="filler" />
+	    <a href="{params(page+1)}">Next Page</a>
+    {/if}
+</div>
+

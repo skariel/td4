@@ -155,7 +155,7 @@ func AllTests(w http.ResponseWriter, r *http.Request) {
 	rj(w, tests)
 }
 
-// SolutionCodesByTest give all solutions bya a test ID
+// SolutionCodesByTest give all solutions by test ID
 func SolutionCodesByTest(w http.ResponseWriter, r *http.Request) {
 	q := GetQuerierFromContext(r)
 
@@ -205,4 +205,25 @@ func SolutionCodeByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rj(w, solution)
+}
+
+// ResultsByRun give all results by result ID
+func ResultsByRun(w http.ResponseWriter, r *http.Request) {
+	q := GetQuerierFromContext(r)
+
+	vars := mux.Vars(r)
+
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		ise(w, err)
+		return
+	}
+
+	results, err := q.GetResultsByRun(context.Background(), int32(id))
+	if err != nil {
+		ise(w, err)
+		return
+	}
+
+	rj(w, results)
 }

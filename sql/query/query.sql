@@ -5,7 +5,7 @@ ON CONFLICT (id)
 DO UPDATE SET display_name=$2, email=$3, avatar=$4;
 
 -- name: CleanPendingRunsPerUSer :exec
-DELETE FROM td4.pending_runs_per_user WHERE total == 0;
+DELETE FROM td4.pending_runs_per_user WHERE total = 0;
 
 -- name: GetTestCodeByID :one
 SELECT
@@ -72,6 +72,9 @@ JOIN td4.runs r
 ON s.id = r.solution_code_id
 WHERE s.id = $1;
 
+-- name: GetResultsByRun :many
+SELECT * FROM td4.run_results WHERE run_id = $1;
+
 -- name: GetConfByDisplayName :one
 SELECT * FROM td4.run_configs
 WHERE display_name = $1;
@@ -134,8 +137,10 @@ WHERE
 UPDATE td4.runs r
 SET status = 'stop', ts_end = NOW()
 WHERE r.status = 'wip' AND NOW() - r.ts_start > (
-    SELECT max_time_secs FROM td4.run_configs rc WHERE r.run_config = rc.display_name
-);
+    SELECT max_time_secs
+    FROM td4.run_configs rc
+    WHERE r.run_config = rc.display_name
+) * '1 sec'::interval;
 
 
 

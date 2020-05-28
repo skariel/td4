@@ -78,7 +78,15 @@
 </svelte:head>
 
 <div class="title">
-	<h1>All Tests</h1>
+	{#if tests.length > 0}
+		<h1>All tests</h1>
+	{:else}
+		{#if page == 0}
+			<h1>No tests yet!</h1>
+		{:else}
+			<h1>No tests in this page!</h1>
+		{/if}
+	{/if}
 	{#if user['avatar'] != null}
 		<a href="/new_test">Add Test</a>
 	{:else}
@@ -96,7 +104,9 @@
 
 <div class="bottom">
     {#if page==0}
-	    <a href="/?page={page+1}">Next Page</a>
+		{#if tests.length == 10}
+	    	<a href="/?page={page+1}">Next Page</a>
+		{/if}
     {:else if tests.length < 10}
 	    <a href="/?page={page-1}">Prev Page</a>
     {:else}
