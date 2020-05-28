@@ -74,6 +74,9 @@
 	<title>Tests</title>
 </svelte:head>
 
+<a href="/test">exporting</a>
+<a href="/solution">exporting</a>
+
 <div class="title">
 	{#if tests.length > 0}
 		<h1>All tests</h1>
