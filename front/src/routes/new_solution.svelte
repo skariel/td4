@@ -54,7 +54,7 @@
 	{#if validate($scode).length > 0}
 		<h5 style="margin-top:20px; color:red;">{validate($scode)}</h5> 
 	{/if}
-	<button on:click={()=>create_solution()} disabled={validate($scode).length != 0}>
+	<button on:click={create_solution} disabled={validate($scode).length != 0}>
 		add solution
 	</button>
 </div>

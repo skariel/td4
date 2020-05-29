@@ -27,6 +27,10 @@ func CreateSolutionCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *h
 
 		var solutionCodeParams db.InsertSolutionCodeParams
 		err := json.NewDecoder(r.Body).Decode(&solutionCodeParams)
+		if err != nil {
+			ise(w, err)
+			return
+		}
 
 		if len(solutionCodeParams.Code) > maxCodeLen {
 			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(solutionCodeParams.Code), maxCodeLen))
@@ -38,11 +42,6 @@ func CreateSolutionCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *h
 		}
 
 		solutionCodeParams.CreatedBy = user.ID
-
-		if err != nil {
-			ise(w, err)
-			return
-		}
 
 		solutionCode, err := q.InsertSolutionCode(context.Background(), solutionCodeParams)
 		if err != nil {
@@ -68,6 +67,10 @@ func CreateTestCodeConfigurator(maxTitleLen int, maxDescLen int, maxCodeLen int)
 
 		var testCodeParams db.InsertTestCodeParams
 		err := json.NewDecoder(r.Body).Decode(&testCodeParams)
+		if err != nil {
+			ise(w, err)
+			return
+		}
 
 		log.Printf("incomming test params: %v", testCodeParams)
 		log.Printf("title len: %v", len(testCodeParams.Title))
@@ -97,11 +100,6 @@ func CreateTestCodeConfigurator(maxTitleLen int, maxDescLen int, maxCodeLen int)
 		}
 
 		testCodeParams.CreatedBy = user.ID
-
-		if err != nil {
-			ise(w, err)
-			return
-		}
 
 		testCode, err := q.InsertTestCode(context.Background(), testCodeParams)
 		if err != nil {
@@ -226,4 +224,65 @@ func ResultsByRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rj(w, results)
+}
+
+// UpdateTestCodeConfigurator returns a configured UpdatetestCode handler
+func UpdateTestCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := GetUserFromContext(r)
+		q := GetQuerierFromContext(r)
+
+		if user == nil {
+			forb(w)
+			return
+		}
+
+		// compare user to solution owner (don't allow anyone else to update)
+		vars := mux.Vars(r)
+
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		solution, err := q.GetSolutionCodeByID(context.Background(), int32(id))
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		if user.ID != solution.CreatedBy {
+			forb(w)
+			return
+		}
+
+		//
+
+		var solutionCodeParams db.UpdateSolutionCodeParams
+		err = json.NewDecoder(r.Body).Decode(&solutionCodeParams)
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		log.Printf("incomming solution params: %v", solutionCodeParams)
+		log.Printf("code len: %v", len(solutionCodeParams.Code))
+		if len(solutionCodeParams.Code) > maxCodeLen {
+			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(solutionCodeParams.Code), maxCodeLen))
+			return
+		}
+		if len(solutionCodeParams.Code) == 0 {
+			expectationFailure(w, fmt.Sprint("no code"))
+			return
+		}
+
+		err = q.UpdateSolutionCode(context.Background(), solutionCodeParams)
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		rj(w, "")
+	}
 }

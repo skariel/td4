@@ -144,3 +144,6 @@ WHERE r.status = 'wip' AND NOW() - r.ts_start > (
 
 
 
+-- name: UpdateSolutionCode :exec
+UPDATE td4.solution_codes SET code = $2 WHERE id = $1;
+

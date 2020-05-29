@@ -64,6 +64,39 @@ AFTER INSERT ON td4.solution_codes
 FOR EACH ROW EXECUTE FUNCTION td4.function_insert_solution();
 END$$;
 
+-- automatically update run, results and pending tasks when a solution is updated
+
+CREATE FUNCTION td4.function_update_solution() RETURNS trigger
+LANGUAGE plpgsql
+AS $$BEGIN
+    UPDATE td4.runs
+    SET ts_start = NULL, ts_end = NULL, status = 'pending'
+    WHERE solution_code_id = NEW.id;
+
+    DELETE FROM td4.run_results
+    WHERE run_id = (
+        SELECT id
+        FROM td4.runs
+        WHERE solution_code_id = NEW.id
+    );
+
+    INSERT INTO td4.pending_runs_per_user(user_id)
+    VALUES (NEW.updated_by)
+    ON CONFLICT (user_id)
+    DO UPDATE
+    SET user_id = NEW.updated_by, total = EXCLUDED.total + 1;
+
+    RETURN NEW;
+END$$;
+
+DO LANGUAGE plpgsql
+$$BEGIN
+CREATE TRIGGER trigger_update_solution
+AFTER UPDATE ON td4.solution_codes
+FOR EACH ROW EXECUTE FUNCTION td4.function_update_solution();
+END$$;
+
+-----------------------------------------------------------
 
 CREATE TABLE td4.run_configs (
     display_name text PRIMARY KEY,

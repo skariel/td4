@@ -72,7 +72,7 @@
 	{#if validate($tname, $tdescr, $tcode).length!=0}
 		<h5 style="margin-top:20px; color:red;">{validate($tname, $tdescr, $tcode)}</h5> 
 	{/if}
-	<button on:click={()=>create_test()} disabled={validate($tname, $tdescr, $tcode).length != 0}>
+	<button on:click={create_test} disabled={validate($tname, $tdescr, $tcode).length != 0}>
 		add test
 	</button>
 </div>
