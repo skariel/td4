@@ -62,6 +62,7 @@ func main() {
 	r.HandleFunc("/api/solutions_by_test/{id}/{offset}", handlers.SolutionCodesByTest).Methods("GET")
 	r.HandleFunc("/api/solution/{id}", handlers.SolutionCodeByID).Methods("GET")
 	r.HandleFunc("/api/results_by_run/{id}", handlers.ResultsByRun).Methods("GET")
+	r.HandleFunc("/api/update_solution", handlers.UpdateTestCodeConfigurator(maxCodeLen)).Methods("POST")
 
 	// apply middlewares
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
@@ -90,6 +91,7 @@ func main() {
 
 func doEvery(d time.Duration, fn func()) {
 	fn()
+
 	for range time.Tick(d) {
 		fn()
 	}

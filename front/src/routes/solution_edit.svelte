@@ -30,23 +30,23 @@
 				code : $uscode,
 			})
 		if (res.status == 200) {
-			scode.set("")
+			uscode.set("")
 			goto('/test?id='+solution.test_code_id+'&page=0')
 		}
 	}
 
-	function validate(scode) {
-		if (scode.length == 0) {
+	function validate(uscode) {
+		if (uscode.length == 0) {
 			return "code is missing";
 		}
-		if (scode.length > 8192) {
-			return `code is too long: ${scode.length} > 8192`;
+		if (uscode.length > 8192) {
+			return `code is too long: ${uscode.length} > 8192`;
 		}
 		return "";
     }
 
     function set_original_code() {
-        $uscode = solution.code
+        uscode.set(solution.code)
     }
 
 </script>
@@ -62,6 +62,10 @@
 
 <h4 style="margin-top:20px;">Code</h4>
 <button on:click={set_original_code}>restore solution code</button>
+
+{#if $uscode != solution.code}
+<h4 style="color:red;">modified!</h4>
+{/if}
 <textarea style="width:100%; height:200px" bind:value={$uscode} />
 
 <div>

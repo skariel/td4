@@ -26,8 +26,7 @@ func CreateSolutionCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *h
 		}
 
 		var solutionCodeParams db.InsertSolutionCodeParams
-		err := json.NewDecoder(r.Body).Decode(&solutionCodeParams)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&solutionCodeParams); err != nil {
 			ise(w, err)
 			return
 		}
@@ -36,8 +35,9 @@ func CreateSolutionCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *h
 			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(solutionCodeParams.Code), maxCodeLen))
 			return
 		}
-		if len(solutionCodeParams.Code) == 0 {
-			expectationFailure(w, fmt.Sprint("no code"))
+
+		if solutionCodeParams.Code == "" {
+			expectationFailure(w, "no code")
 			return
 		}
 
@@ -51,11 +51,10 @@ func CreateSolutionCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *h
 
 		rj(w, solutionCode)
 	}
-
 }
 
 // CreateTestCodeConfigurator returns a configured CreatetestCode handler
-func CreateTestCodeConfigurator(maxTitleLen int, maxDescLen int, maxCodeLen int) func(http.ResponseWriter, *http.Request) {
+func CreateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen int) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := GetUserFromContext(r)
 		q := GetQuerierFromContext(r)
@@ -66,36 +65,41 @@ func CreateTestCodeConfigurator(maxTitleLen int, maxDescLen int, maxCodeLen int)
 		}
 
 		var testCodeParams db.InsertTestCodeParams
-		err := json.NewDecoder(r.Body).Decode(&testCodeParams)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&testCodeParams); err != nil {
 			ise(w, err)
 			return
 		}
 
 		log.Printf("incomming test params: %v", testCodeParams)
 		log.Printf("title len: %v", len(testCodeParams.Title))
+
 		if len(testCodeParams.Title) > maxTitleLen {
 			expectationFailure(w, fmt.Sprintf("title too long (%v > %v)", len(testCodeParams.Title), maxTitleLen))
 			return
 		}
-		if len(testCodeParams.Title) == 0 {
-			expectationFailure(w, fmt.Sprint("no title"))
+
+		if testCodeParams.Title == "" {
+			expectationFailure(w, "no title")
 			return
 		}
+
 		if len(testCodeParams.Descr) > maxDescLen {
 			expectationFailure(w, fmt.Sprintf("description too long (%v > %v)", len(testCodeParams.Descr), maxDescLen))
 			return
 		}
-		if len(testCodeParams.Descr) == 0 {
-			expectationFailure(w, fmt.Sprint("no description"))
+
+		if testCodeParams.Descr == "" {
+			expectationFailure(w, "no description")
 			return
 		}
+
 		if len(testCodeParams.Code) > maxCodeLen {
 			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(testCodeParams.Code), maxCodeLen))
 			return
 		}
-		if len(testCodeParams.Code) == 0 {
-			expectationFailure(w, fmt.Sprint("no code"))
+
+		if testCodeParams.Code == "" {
+			expectationFailure(w, "no code")
 			return
 		}
 
@@ -117,7 +121,7 @@ func GetTestByID(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 32)
 	if err != nil {
 		ise(w, err)
 		return
@@ -138,7 +142,7 @@ func AllTests(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	offset, err := strconv.Atoi(vars["offset"])
+	offset, err := strconv.ParseInt(vars["offset"], 10, 32)
 	if err != nil {
 		ise(w, err)
 		return
@@ -159,13 +163,13 @@ func SolutionCodesByTest(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 32)
 	if err != nil {
 		ise(w, err)
 		return
 	}
 
-	offset, err := strconv.Atoi(vars["offset"])
+	offset, err := strconv.ParseInt(vars["offset"], 10, 32)
 	if err != nil {
 		ise(w, err)
 		return
@@ -190,7 +194,7 @@ func SolutionCodeByID(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 32)
 	if err != nil {
 		ise(w, err)
 		return
@@ -211,7 +215,7 @@ func ResultsByRun(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 32)
 	if err != nil {
 		ise(w, err)
 		return
@@ -237,16 +241,29 @@ func UpdateTestCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *http.
 			return
 		}
 
-		// compare user to solution owner (don't allow anyone else to update)
-		vars := mux.Vars(r)
-
-		id, err := strconv.Atoi(vars["id"])
-		if err != nil {
+		// decodce request body
+		var solutionCodeParams db.UpdateSolutionCodeParams
+		if err := json.NewDecoder(r.Body).Decode(&solutionCodeParams); err != nil {
 			ise(w, err)
 			return
 		}
 
-		solution, err := q.GetSolutionCodeByID(context.Background(), int32(id))
+		log.Printf("incomming solution params: %v", solutionCodeParams)
+		log.Printf("code len: %v", len(solutionCodeParams.Code))
+
+		// validate code
+		if len(solutionCodeParams.Code) > maxCodeLen {
+			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(solutionCodeParams.Code), maxCodeLen))
+			return
+		}
+
+		if solutionCodeParams.Code == "" {
+			expectationFailure(w, "no code")
+			return
+		}
+
+		// validate user: compare user to solution owner (don't allow anyone else to update)
+		solution, err := q.GetSolutionCodeByID(context.Background(), solutionCodeParams.ID)
 		if err != nil {
 			ise(w, err)
 			return
@@ -257,26 +274,13 @@ func UpdateTestCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *http.
 			return
 		}
 
-		//
-
-		var solutionCodeParams db.UpdateSolutionCodeParams
-		err = json.NewDecoder(r.Body).Decode(&solutionCodeParams)
-		if err != nil {
-			ise(w, err)
+		// validate solution state is not WIP:
+		if solution.Status == "wip" {
+			expectationFailure(w, "cannot update solution while state is WIP")
 			return
 		}
 
-		log.Printf("incomming solution params: %v", solutionCodeParams)
-		log.Printf("code len: %v", len(solutionCodeParams.Code))
-		if len(solutionCodeParams.Code) > maxCodeLen {
-			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(solutionCodeParams.Code), maxCodeLen))
-			return
-		}
-		if len(solutionCodeParams.Code) == 0 {
-			expectationFailure(w, fmt.Sprint("no code"))
-			return
-		}
-
+		// do the update
 		err = q.UpdateSolutionCode(context.Background(), solutionCodeParams)
 		if err != nil {
 			ise(w, err)

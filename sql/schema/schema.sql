@@ -64,14 +64,27 @@ AFTER INSERT ON td4.solution_codes
 FOR EACH ROW EXECUTE FUNCTION td4.function_insert_solution();
 END$$;
 
+CREATE TYPE td4.type_run_status
+AS ENUM ('pending', 'wip', 'pass', 'fail', 'problem', 'stop');
+
 -- automatically update run, results and pending tasks when a solution is updated
 
 CREATE FUNCTION td4.function_update_solution() RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
+    -- if pending, pending runs per user is already good...
+    IF (SELECT status FROM td4.runs WHERE solution_code_id = NEW.id) != 'pending' THEN
+        INSERT INTO td4.pending_runs_per_user(user_id)
+        VALUES (NEW.updated_by)
+        ON CONFLICT (user_id)
+        DO UPDATE
+        SET user_id = NEW.updated_by, total = EXCLUDED.total + 1;
+    END IF;
+
     UPDATE td4.runs
     SET ts_start = NULL, ts_end = NULL, status = 'pending'
     WHERE solution_code_id = NEW.id;
+
 
     DELETE FROM td4.run_results
     WHERE run_id = (
@@ -80,11 +93,6 @@ AS $$BEGIN
         WHERE solution_code_id = NEW.id
     );
 
-    INSERT INTO td4.pending_runs_per_user(user_id)
-    VALUES (NEW.updated_by)
-    ON CONFLICT (user_id)
-    DO UPDATE
-    SET user_id = NEW.updated_by, total = EXCLUDED.total + 1;
 
     RETURN NEW;
 END$$;
@@ -114,10 +122,6 @@ CREATE TABLE td4.run_configs (
 CREATE INDEX upserted_by_run_configs_index ON td4.run_configs (created_by, updated_by);
 INSERT INTO td4.run_configs(display_name, created_by, updated_by)
 VALUES ('default', 'admin', 'admin');
-
-
-CREATE TYPE td4.type_run_status
-AS ENUM ('pending', 'wip', 'pass', 'fail', 'problem', 'stop');
 
 
 CREATE TABLE td4.runs (
@@ -213,6 +217,17 @@ AS $$BEGIN
         -- wip -> pass
         UPDATE td4.test_codes AS test
         SET total_wip = total_wip - 1, total_pass = total_pass + 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+    -- These are needed because when a solution is updated the run is going back to pending state
+    ELSEIF OLD.status = 'fail' AND NEW.status = 'pending' THEN
+        -- fail -> pending
+        UPDATE td4.test_codes AS test
+        SET total_fail = total_fail - 1, total_pending = total_pending + 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+    ELSEIF OLD.status = 'pass' AND NEW.status = 'pending' THEN
+        -- pass -> pending
+        UPDATE td4.test_codes AS test
+        SET total_pass = total_pass - 1, total_pending = total_pending + 1
         WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
     END IF;
 
