@@ -65,7 +65,7 @@ FOR EACH ROW EXECUTE FUNCTION td4.function_insert_solution();
 END$$;
 
 CREATE TYPE td4.type_run_status
-AS ENUM ('pending', 'wip', 'pass', 'fail', 'problem', 'stop');
+AS ENUM ('pending', 'wip', 'pass', 'fail', 'stop');
 
 -- automatically update run, results and pending tasks when a solution is updated
 
@@ -220,6 +220,11 @@ AS $$BEGIN
         WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
     -- These are needed because when a solution is updated the run is going back to pending state
     ELSEIF OLD.status = 'fail' AND NEW.status = 'pending' THEN
+        -- fail -> pending
+        UPDATE td4.test_codes AS test
+        SET total_fail = total_fail - 1, total_pending = total_pending + 1
+        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+    ELSEIF OLD.status = 'stop' AND NEW.status = 'pending' THEN
         -- fail -> pending
         UPDATE td4.test_codes AS test
         SET total_fail = total_fail - 1, total_pending = total_pending + 1
