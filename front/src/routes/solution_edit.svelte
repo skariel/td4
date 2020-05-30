@@ -14,14 +14,18 @@
         load_data();
     })
 
-	async function load_data(solution_id) {
+	async function load_data() {
 		const url = new URL(location)
-        solution_id = url.searchParams.get("id")
+        let solution_id = url.searchParams.get("id")
 		let r = await get(user, 'solution/'+solution_id)
         solution=r.data;
         if ($uscode == "") {
             set_original_code();
         }
+	}
+
+	function set_original_code() {
+		uscode.set(solution.code)
 	}
 
 	async function update_solution() {
@@ -45,9 +49,6 @@
 		return "";
     }
 
-    function set_original_code() {
-        uscode.set(solution.code)
-    }
 
 </script>
 
@@ -64,7 +65,7 @@
 <button on:click={set_original_code}>restore solution code</button>
 
 {#if $uscode != solution.code}
-<h4 style="color:red;">modified!</h4>
+	<h4 style="color:red;">modified!</h4>
 {/if}
 <textarea style="width:100%; height:200px" bind:value={$uscode} />
 

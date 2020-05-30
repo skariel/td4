@@ -57,7 +57,10 @@
 <style>
 </style>
 
-<title>New test</title>
+<svelte:head>
+	<title>New test</title>
+</svelte:head>
+
 
 <h4>Title</h4>
 <input bind:value={$tname}>

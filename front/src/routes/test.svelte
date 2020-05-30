@@ -1,5 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
+	import { goto } from '@sapper/app';
+
 	import { get, getUser, loginpath } from './utils';
 	import SolutionCard from '../components/SolutionCard.svelte'
 
@@ -110,6 +112,8 @@
 
 <h3>Title: {test.title}</h3>
 <p>Description: {test.descr}</p>
+
+<button on:click={goto("/test_edit?id="+test.id)}>Edit Test</button>
 
 <pre class="code">
 	<code>
