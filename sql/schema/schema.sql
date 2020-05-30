@@ -47,64 +47,6 @@ CREATE TABLE td4.solution_codes (
 CREATE INDEX upserted_by_solution_codes_index ON td4.test_codes (created_by, updated_by);
 CREATE INDEX test_code_id_solution_codes_index ON td4.solution_codes (test_code_id);
 
--- automatically insert run when a solution is added
-
-CREATE FUNCTION td4.function_insert_solution() RETURNS trigger
-LANGUAGE plpgsql
-AS $$BEGIN
-    INSERT INTO td4.runs(created_by, updated_by, solution_code_id, run_config)
-    VALUES (NEW.created_by, NEW.updated_by, NEW.id, 'default');
-    RETURN NEW;
-END$$;
-
-DO LANGUAGE plpgsql
-$$BEGIN
-CREATE TRIGGER trigger_insert_solution
-AFTER INSERT ON td4.solution_codes
-FOR EACH ROW EXECUTE FUNCTION td4.function_insert_solution();
-END$$;
-
-CREATE TYPE td4.type_run_status
-AS ENUM ('pending', 'wip', 'pass', 'fail', 'stop');
-
--- automatically update run, results and pending tasks when a solution is updated
-
-CREATE FUNCTION td4.function_update_solution() RETURNS trigger
-LANGUAGE plpgsql
-AS $$BEGIN
-    -- if pending, pending runs per user is already good...
-    IF (SELECT status FROM td4.runs WHERE solution_code_id = NEW.id) != 'pending' THEN
-        INSERT INTO td4.pending_runs_per_user(user_id)
-        VALUES (NEW.updated_by)
-        ON CONFLICT (user_id)
-        DO UPDATE
-        SET user_id = NEW.updated_by, total = EXCLUDED.total + 1;
-    END IF;
-
-    UPDATE td4.runs
-    SET ts_start = NULL, ts_end = NULL, status = 'pending'
-    WHERE solution_code_id = NEW.id;
-
-
-    DELETE FROM td4.run_results
-    WHERE run_id = (
-        SELECT id
-        FROM td4.runs
-        WHERE solution_code_id = NEW.id
-    );
-
-
-    RETURN NEW;
-END$$;
-
-DO LANGUAGE plpgsql
-$$BEGIN
-CREATE TRIGGER trigger_update_solution
-AFTER UPDATE ON td4.solution_codes
-FOR EACH ROW EXECUTE FUNCTION td4.function_update_solution();
-END$$;
-
------------------------------------------------------------
 
 CREATE TABLE td4.run_configs (
     display_name text PRIMARY KEY,
@@ -123,6 +65,9 @@ CREATE INDEX upserted_by_run_configs_index ON td4.run_configs (created_by, updat
 INSERT INTO td4.run_configs(display_name, created_by, updated_by)
 VALUES ('default', 'admin', 'admin');
 
+
+CREATE TYPE td4.type_run_status
+AS ENUM ('pending', 'wip', 'pass', 'fail', 'stop');
 
 CREATE TABLE td4.runs (
     id SERIAL PRIMARY KEY,
@@ -172,6 +117,60 @@ CREATE TABLE td4.pending_runs_per_user (
 );
 CREATE INDEX user_id_pending_runs_per_user_index ON td4.pending_runs_per_user (user_id);
 CREATE INDEX total_pending_runs_per_user_index ON td4.pending_runs_per_user (total);
+
+-- automatically insert run when a solution is added
+
+CREATE FUNCTION td4.function_insert_solution() RETURNS trigger
+LANGUAGE plpgsql
+AS $$BEGIN
+    INSERT INTO td4.runs(created_by, updated_by, solution_code_id, run_config)
+    VALUES (NEW.created_by, NEW.updated_by, NEW.id, 'default');
+    RETURN NEW;
+END$$;
+
+DO LANGUAGE plpgsql
+$$BEGIN
+CREATE TRIGGER trigger_insert_solution
+AFTER INSERT ON td4.solution_codes
+FOR EACH ROW EXECUTE FUNCTION td4.function_insert_solution();
+END$$;
+
+-- automatically update run, results and pending tasks when a solution is updated
+
+CREATE FUNCTION td4.function_update_solution() RETURNS trigger
+LANGUAGE plpgsql
+AS $$BEGIN
+    -- if pending, pending runs per user is already good...
+    IF (SELECT status FROM td4.runs WHERE solution_code_id = NEW.id) != 'pending' THEN
+        INSERT INTO td4.pending_runs_per_user(user_id)
+        VALUES (NEW.updated_by)
+        ON CONFLICT (user_id)
+        DO UPDATE
+        SET user_id = NEW.updated_by, total = EXCLUDED.total + 1;
+    END IF;
+
+    UPDATE td4.runs
+    SET ts_start = NULL, ts_end = NULL, status = 'pending'
+    WHERE solution_code_id = NEW.id;
+
+
+    DELETE FROM td4.run_results
+    WHERE run_id = (
+        SELECT id
+        FROM td4.runs
+        WHERE solution_code_id = NEW.id
+    );
+
+
+    RETURN NEW;
+END$$;
+
+DO LANGUAGE plpgsql
+$$BEGIN
+CREATE TRIGGER trigger_update_solution
+AFTER UPDATE ON td4.solution_codes
+FOR EACH ROW EXECUTE FUNCTION td4.function_update_solution();
+END$$;
 
 -- automatically update pending runs per user and test when a run is added
 
@@ -263,6 +262,7 @@ AS $$BEGIN
         UPDATE td4.test_codes AS test
         SET total_pass = total_pass - 1
         WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
+    -- This take care of other "fail" states such as "stop", etc.
     ELSEIF OLD.status != 'pass' THEN
         UPDATE td4.test_codes AS test
         SET total_fail = total_fail - 1
@@ -302,63 +302,5 @@ BEGIN
         EXECUTE 'CREATE TRIGGER trigger_set_timestamp BEFORE UPDATE ON td4.' || t || ' FOR EACH ROW EXECUTE FUNCTION td4.function_set_timestamp();';
     END LOOP;
 END$$;
-
-
--- some tests!
-
--- INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code)
--- VALUES ('admin', 'admin', 'title', 'descr', 'code1');
-
--- INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code)
--- VALUES ('admin', 'admin', 'title', 'descr', 'code2');
-
--- INSERT INTO td4.test_codes(created_by, updated_by, title, descr, code)
--- VALUES ('admin', 'admin', 'title', 'descr', 'code3');
-
-
-
-
--- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
--- VALUES ('admin', 'admin', 1, 'code');
-
--- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
--- VALUES ('admin', 'admin', 2, 'code');
--- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
--- VALUES ('admin', 'admin', 2, 'code');
-
--- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
--- VALUES ('admin', 'admin', 3, 'code');
--- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
--- VALUES ('admin', 'admin', 3, 'code');
--- INSERT INTO td4.solution_codes(created_by, updated_by, test_code_id, code)
--- VALUES ('admin', 'admin', 3, 'code');
-
-
-
--- UPDATE td4.runs
--- SET status='wip'
--- WHERE id=1;
-
--- UPDATE td4.runs
--- SET status='wip'
--- WHERE id=2;
--- UPDATE td4.runs
--- SET status='fail'
--- WHERE id=2;
-
--- UPDATE td4.runs
--- SET status='wip'
--- WHERE id=3;
--- UPDATE td4.runs
--- SET status='pass'
--- WHERE id=3;
-
--- DELETE FROM td4.runs AS r
--- WHERE r.id=4;
-
-
-
-
-
 
 

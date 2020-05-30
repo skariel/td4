@@ -61,3 +61,4 @@ npm update --save-dev
 # TODO: deletion of tests
 # TODO: deletion of solutions
 # TODO: updating of tests
+# TODO: global stats
