@@ -129,9 +129,27 @@ CREATE INDEX total_pending_runs_per_user_index ON td4.pending_runs_per_user (tot
 --------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------
 
+-- TODO: turn this into a procedure, maybe bug with sqlc??
+CREATE FUNCTION td4.function_rerun_solution(updated_by text, updated_solution_id integer)
+RETURNS text
+LANGUAGE plpgsql
+AS $$BEGIN
+    WITH r as (
+        DELETE FROM td4.runs
+        WHERE solution_code_id = updated_solution_id
+        RETURNING *
+    )
+	INSERT INTO td4.runs(created_by, updated_by, solution_code_id, run_config)
+	SELECT r.created_by, r.updated_by, updated_solution_id, 'default' FROM r;
 
--- automatically handle updated test
+    RETURN 'ok';
+END$$;
 
+-- automatically handle updated test code
+
+-- TODO: create trigger on test code update
+-- TODO: rerun all solutions for a given test
+-- TODO: write a query to update test code
 
 -- automatically insert run when a solution is added
 
@@ -151,34 +169,6 @@ FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_insert_solution();
 END$$;
 
 -- automatically update run, results and pending tasks when a solution code is updated
-
--- TODO: turn this into a procedure, maybe bug with sqlc??
-CREATE FUNCTION td4.function_rerun_solution(updated_by text, updated_solution_id integer)
-RETURNS text
-LANGUAGE plpgsql
-AS $$BEGIN
-    -- if pending, pending runs per user is already good...
-    IF (SELECT status FROM td4.runs WHERE solution_code_id = updated_solution_id) != 'pending' THEN
-        INSERT INTO td4.pending_runs_per_user(user_id)
-        VALUES (updated_by)
-        ON CONFLICT (user_id)
-        DO UPDATE
-        SET user_id = updated_by, total = EXCLUDED.total + 1;
-    END IF;
-
-    UPDATE td4.runs
-    SET ts_start = NULL, ts_end = NULL, status = 'pending'
-    WHERE solution_code_id = updated_solution_id;
-
-
-    DELETE FROM td4.run_results
-    WHERE run_id = (
-        SELECT id
-        FROM td4.runs
-        WHERE solution_code_id = updated_solution_id
-    );
-    RETURN 'ok';
-END$$;
 
 CREATE FUNCTION td4.trigger_function_rerun_solution()
 RETURNS trigger
@@ -242,24 +232,7 @@ AS $$BEGIN
         UPDATE td4.test_codes AS test
         SET total_wip = total_wip - 1, total_pass = total_pass + 1
         WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
-    -- These are needed because when a solution is updated the run is going back to pending state
-    ELSEIF OLD.status = 'fail' AND NEW.status = 'pending' THEN
-        -- fail -> pending
-        UPDATE td4.test_codes AS test
-        SET total_fail = total_fail - 1, total_pending = total_pending + 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
-    ELSEIF OLD.status = 'stop' AND NEW.status = 'pending' THEN
-        -- fail -> pending
-        UPDATE td4.test_codes AS test
-        SET total_fail = total_fail - 1, total_pending = total_pending + 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
-    ELSEIF OLD.status = 'pass' AND NEW.status = 'pending' THEN
-        -- pass -> pending
-        UPDATE td4.test_codes AS test
-        SET total_pass = total_pass - 1, total_pending = total_pending + 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
-    END IF;
-
+	END IF;
     RETURN NEW;
 END$$;
 
