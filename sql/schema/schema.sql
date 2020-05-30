@@ -130,7 +130,7 @@ CREATE INDEX total_pending_runs_per_user_index ON td4.pending_runs_per_user (tot
 --------------------------------------------------------------------------------------------------------------
 
 -- TODO: turn this into a procedure, maybe bug with sqlc??
-CREATE FUNCTION td4.function_rerun_solution(updated_by text, updated_solution_id integer)
+CREATE FUNCTION td4.function_rerun_solution(updated_solution_id integer)
 RETURNS text
 LANGUAGE plpgsql
 AS $$BEGIN
@@ -147,9 +147,33 @@ END$$;
 
 -- automatically handle updated test code
 
--- TODO: create trigger on test code update
--- TODO: rerun all solutions for a given test
--- TODO: write a query to update test code
+-- TODO: page for updating a test
+
+CREATE FUNCTION td4.trigger_function_rerun_all_solution_of_updated_test()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    sid integer;
+BEGIN
+    FOR sid IN
+    SELECT id
+    FROM td4.solution_codes
+    WHERE test_code_id = NEW.id
+    LOOP
+        PERFORM td4.function_rerun_solution(sid);
+    END LOOP;
+    RETURN NEW;
+END$$;
+
+DO LANGUAGE plpgsql
+$$BEGIN
+CREATE TRIGGER trigger_update_test
+AFTER UPDATE ON td4.test_codes
+FOR EACH ROW
+WHEN (OLD.code IS DISTINCT FROM NEW.code)
+EXECUTE FUNCTION td4.trigger_function_rerun_all_solution_of_updated_test();
+END$$;
 
 -- automatically insert run when a solution is added
 
@@ -174,7 +198,7 @@ CREATE FUNCTION td4.trigger_function_rerun_solution()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
-    PERFORM td4.function_rerun_solution(NEW.updated_by, NEW.id);
+    PERFORM td4.function_rerun_solution(NEW.id);
     RETURN NEW;
 END$$;
 

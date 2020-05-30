@@ -6,7 +6,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"time"
@@ -42,7 +41,7 @@ func main() {
 
 	log.Println("Connected to DB")
 
-	// main work loop: get run, get run data, runRun, repeat!
+	// main work loop: get run, run, report, repeat!
 	for {
 		time.Sleep(sleepTimeSeconds * time.Second)
 
@@ -82,22 +81,6 @@ func main() {
 			continue
 		}
 
-		log.Print("Test results:")
-
-		for ix := range suites {
-			suite := suites[ix]
-			fmt.Println(suite.Name)
-
-			for _, test := range suite.Tests {
-				fmt.Printf("  %s\n", test.Name)
-
-				if test.Error != nil {
-					fmt.Printf("    %s: %s\n", test.Status, test.Error.Error())
-				} else {
-					fmt.Printf("    %s\n", test.Status)
-				}
-			}
-		}
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -69,9 +68,6 @@ func CreateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen int) func(ht
 			ise(w, err)
 			return
 		}
-
-		log.Printf("incomming test params: %v", testCodeParams)
-		log.Printf("title len: %v", len(testCodeParams.Title))
 
 		if len(testCodeParams.Title) > maxTitleLen {
 			expectationFailure(w, fmt.Sprintf("title too long (%v > %v)", len(testCodeParams.Title), maxTitleLen))
@@ -230,8 +226,8 @@ func ResultsByRun(w http.ResponseWriter, r *http.Request) {
 	rj(w, results)
 }
 
-// UpdateTestCodeConfigurator returns a configured UpdatetestCode handler
-func UpdateTestCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *http.Request) {
+// UpdateSolutionCodeConfigurator returns a configured UpdateSolutionCode handler
+func UpdateSolutionCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user := GetUserFromContext(r)
 		q := GetQuerierFromContext(r)
@@ -247,9 +243,6 @@ func UpdateTestCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *http.
 			ise(w, err)
 			return
 		}
-
-		log.Printf("incomming solution params: %v", solutionCodeParams)
-		log.Printf("code len: %v", len(solutionCodeParams.Code))
 
 		// validate code
 		if len(solutionCodeParams.Code) > maxCodeLen {
@@ -274,14 +267,80 @@ func UpdateTestCodeConfigurator(maxCodeLen int) func(http.ResponseWriter, *http.
 			return
 		}
 
-		// validate solution state is not WIP:
-		if solution.Status == "wip" {
-			expectationFailure(w, "cannot update solution while state is WIP")
+		// do the update
+		err = q.UpdateSolutionCode(context.Background(), solutionCodeParams)
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		rj(w, "")
+	}
+}
+
+// UpdateTestCodeConfigurator returns a configured UpdateTestCode handler
+func UpdateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen int) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user := GetUserFromContext(r)
+		q := GetQuerierFromContext(r)
+
+		if user == nil {
+			forb(w)
+			return
+		}
+
+		// decodce request body
+		var testCodeParams db.UpdateTestCodeParams
+		if err := json.NewDecoder(r.Body).Decode(&testCodeParams); err != nil {
+			ise(w, err)
+			return
+		}
+
+		// validate
+		if len(testCodeParams.Title) > maxTitleLen {
+			expectationFailure(w, fmt.Sprintf("title too long (%v > %v)", len(testCodeParams.Title), maxTitleLen))
+			return
+		}
+
+		if testCodeParams.Title == "" {
+			expectationFailure(w, "no title")
+			return
+		}
+
+		if len(testCodeParams.Descr) > maxDescLen {
+			expectationFailure(w, fmt.Sprintf("description too long (%v > %v)", len(testCodeParams.Descr), maxDescLen))
+			return
+		}
+
+		if testCodeParams.Descr == "" {
+			expectationFailure(w, "no description")
+			return
+		}
+
+		if len(testCodeParams.Code) > maxCodeLen {
+			expectationFailure(w, fmt.Sprintf("code too long (%v > %v)", len(testCodeParams.Code), maxCodeLen))
+			return
+		}
+
+		if testCodeParams.Code == "" {
+			expectationFailure(w, "no code")
+			return
+		}
+
+		// validate user: compare user to solution owner (don't allow anyone else to update)
+		test, err := q.GetTestCodeByID(context.Background(), testCodeParams.ID)
+		if err != nil {
+			ise(w, err)
+			return
+		}
+
+		if user.ID != test.CreatedBy {
+			forb(w)
 			return
 		}
 
 		// do the update
-		err = q.UpdateSolutionCode(context.Background(), solutionCodeParams)
+		err = q.UpdateTestCode(context.Background(), testCodeParams)
 		if err != nil {
 			ise(w, err)
 			return
