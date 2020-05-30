@@ -147,8 +147,6 @@ END$$;
 
 -- automatically handle updated test code
 
--- TODO: page for updating a test
-
 CREATE FUNCTION td4.trigger_function_rerun_all_solution_of_updated_test()
 RETURNS trigger
 LANGUAGE plpgsql

@@ -74,8 +74,15 @@
 	<title>Tests</title>
 </svelte:head>
 
-<a href="/test">exporting</a>
-<a href="/solution">exporting</a>
+<div style="visibility: hidden;">
+<!-- exporting with sapper -->
+	<a href="/test">exporting</a>
+	<a href="/solution">exporting</a>
+	<a href="/new_solution">exporting</a>
+	<a href="/new_test">exporting</a>
+	<a href="/solution_edit">exporting</a>
+	<a href="/test_edit">exporting</a>
+</div>
 
 <div class="title">
 	{#if tests.length > 0}
