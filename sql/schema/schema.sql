@@ -118,9 +118,24 @@ CREATE TABLE td4.pending_runs_per_user (
 CREATE INDEX user_id_pending_runs_per_user_index ON td4.pending_runs_per_user (user_id);
 CREATE INDEX total_pending_runs_per_user_index ON td4.pending_runs_per_user (total);
 
+
+
+
+--------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+--    FUNCTIONS AND TRIGGERS!
+--------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+
+
+-- automatically handle updated test
+
+
 -- automatically insert run when a solution is added
 
-CREATE FUNCTION td4.function_insert_solution() RETURNS trigger
+CREATE FUNCTION td4.trigger_function_insert_solution() RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
     INSERT INTO td4.runs(created_by, updated_by, solution_code_id, run_config)
@@ -132,36 +147,44 @@ DO LANGUAGE plpgsql
 $$BEGIN
 CREATE TRIGGER trigger_insert_solution
 AFTER INSERT ON td4.solution_codes
-FOR EACH ROW EXECUTE FUNCTION td4.function_insert_solution();
+FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_insert_solution();
 END$$;
 
--- automatically update run, results and pending tasks when a solution is updated
+-- automatically update run, results and pending tasks when a solution code is updated
 
-CREATE FUNCTION td4.function_update_solution() RETURNS trigger
+-- TODO: turn this into a procedure, maybe bug with sqlc??
+CREATE FUNCTION td4.function_rerun_solution(updated_by text, updated_solution_id integer)
+RETURNS text
 LANGUAGE plpgsql
 AS $$BEGIN
     -- if pending, pending runs per user is already good...
-    IF (SELECT status FROM td4.runs WHERE solution_code_id = NEW.id) != 'pending' THEN
+    IF (SELECT status FROM td4.runs WHERE solution_code_id = updated_solution_id) != 'pending' THEN
         INSERT INTO td4.pending_runs_per_user(user_id)
-        VALUES (NEW.updated_by)
+        VALUES (updated_by)
         ON CONFLICT (user_id)
         DO UPDATE
-        SET user_id = NEW.updated_by, total = EXCLUDED.total + 1;
+        SET user_id = updated_by, total = EXCLUDED.total + 1;
     END IF;
 
     UPDATE td4.runs
     SET ts_start = NULL, ts_end = NULL, status = 'pending'
-    WHERE solution_code_id = NEW.id;
+    WHERE solution_code_id = updated_solution_id;
 
 
     DELETE FROM td4.run_results
     WHERE run_id = (
         SELECT id
         FROM td4.runs
-        WHERE solution_code_id = NEW.id
+        WHERE solution_code_id = updated_solution_id
     );
+    RETURN 'ok';
+END$$;
 
-
+CREATE FUNCTION td4.trigger_function_rerun_solution()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$BEGIN
+    PERFORM td4.function_rerun_solution(NEW.updated_by, NEW.id);
     RETURN NEW;
 END$$;
 
@@ -169,12 +192,14 @@ DO LANGUAGE plpgsql
 $$BEGIN
 CREATE TRIGGER trigger_update_solution
 AFTER UPDATE ON td4.solution_codes
-FOR EACH ROW EXECUTE FUNCTION td4.function_update_solution();
+FOR EACH ROW
+WHEN (OLD.code IS DISTINCT FROM NEW.code)
+EXECUTE FUNCTION td4.trigger_function_rerun_solution();
 END$$;
 
 -- automatically update pending runs per user and test when a run is added
 
-CREATE FUNCTION td4.function_insert_run()  RETURNS trigger
+CREATE FUNCTION td4.trigger_function_insert_run()  RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
     INSERT INTO td4.pending_runs_per_user(user_id)
@@ -194,12 +219,12 @@ DO LANGUAGE plpgsql
 $$BEGIN
 CREATE TRIGGER trigger_insert_run
 AFTER INSERT ON td4.runs
-FOR EACH ROW EXECUTE FUNCTION td4.function_insert_run();
+FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_insert_run();
 END$$;
 
 -- automatically update test when a run is updated
 
-CREATE FUNCTION td4.function_update_run() RETURNS trigger
+CREATE FUNCTION td4.trigger_function_update_run() RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
     IF OLD.status = 'pending' AND NEW.status = 'wip' THEN
@@ -242,12 +267,12 @@ DO LANGUAGE plpgsql
 $$BEGIN
 CREATE TRIGGER trigger_update_run
 AFTER UPDATE ON td4.runs
-FOR EACH ROW EXECUTE FUNCTION td4.function_update_run();
+FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_update_run();
 END$$;
 
 -- automatically update test when a run is removed
 
-CREATE FUNCTION td4.function_delete_run() RETURNS trigger
+CREATE FUNCTION td4.trigger_function_delete_run() RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
     IF OLD.status = 'pending' THEN
@@ -276,12 +301,12 @@ DO LANGUAGE plpgsql
 $$BEGIN
 CREATE TRIGGER trigger_delete_run
 BEFORE DELETE ON td4.runs
-FOR EACH ROW EXECUTE FUNCTION td4.function_delete_run();
+FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_delete_run();
 END$$;
 
 -- automatic updating `ts_updated` columns
 
-CREATE FUNCTION td4.function_set_timestamp() RETURNS trigger
+CREATE FUNCTION td4.trigger_function_set_timestamp() RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
   NEW.ts_updated = NOW();
@@ -299,7 +324,7 @@ BEGIN
     FROM information_schema.tables
     WHERE table_schema='td4'
     LOOP
-        EXECUTE 'CREATE TRIGGER trigger_set_timestamp BEFORE UPDATE ON td4.' || t || ' FOR EACH ROW EXECUTE FUNCTION td4.function_set_timestamp();';
+        EXECUTE 'CREATE TRIGGER trigger_set_timestamp BEFORE UPDATE ON td4.' || t || ' FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_set_timestamp();';
     END LOOP;
 END$$;
 
