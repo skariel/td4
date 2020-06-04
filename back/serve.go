@@ -155,6 +155,10 @@ func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.
 		next.ServeHTTP(&sw, r)
 
 		// Log
-		log.Printf("%v %v %v %v %v %v %v", time.Since(startTime), r.RemoteAddr, r.Proto, r.Method, r.RequestURI, sw.status, sw.length)
+		displayName := "nil"
+		if user != nil {
+			displayName = user.DisplayName
+		}
+		log.Printf("%v %v %v %v %v %v %v %v", time.Since(startTime), r.RemoteAddr, r.Proto, r.Method, r.RequestURI, sw.status, sw.length, displayName)
 	})
 }
