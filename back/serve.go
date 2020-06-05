@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"time"
 
 	"github.com/danilopolani/gocialite"
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth/limiter"
 	"github.com/gorilla/mux"
 
 	cache "github.com/victorspringer/http-cache"
@@ -31,6 +32,9 @@ const (
 	maxCodeLen                          = 8192
 	cacheCapacity                       = 100000
 	cacheTTLSeconds                     = 7
+	rateLimitTTLSeconds                 = 30
+	rateLimitMax                        = 30
+	rateLimitExpireJobIntervalSeconds   = 120
 )
 
 func main() {
@@ -72,8 +76,24 @@ func main() {
 	r.HandleFunc("/api/update_test", handlers.UpdateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen)).Methods("POST")
 
 	// apply middlewares
+
+	// timeout
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
 
+	// rate-limit
+	lmt := tollbooth.NewLimiter(rateLimitMax, &limiter.ExpirableOptions{
+		DefaultExpirationTTL: rateLimitTTLSeconds * time.Second,
+		ExpireJobInterval:    rateLimitExpireJobIntervalSeconds * time.Second,
+	})
+
+	lmt.SetMessage("you have reached maximum request limit.")
+	lmt.SetMessageContentType("application/json")
+	h = tollbooth.LimitHandler(lmt, h)
+
+	// my middleware (cors, logging, context etc.)
+	h = middleware(h, q, gocialite.NewDispatcher())
+
+	// caching. doesn't reach logging
 	memcached, err := memory.NewAdapter(
 		memory.AdapterWithAlgorithm(memory.LRU),
 		memory.AdapterWithCapacity(cacheCapacity),
@@ -86,12 +106,8 @@ func main() {
 		cache.ClientWithTTL(cacheTTLSeconds*time.Second),
 	)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-
-	h = middleware(h, q, gocialite.NewDispatcher())
-
 	h = cacheClient.Middleware(h)
 
 	// start some cleanup functions
