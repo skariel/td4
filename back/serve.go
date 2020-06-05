@@ -159,6 +159,13 @@ func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.
 		if user != nil {
 			displayName = user.DisplayName
 		}
-		log.Printf("%v %v %v %v %v %v %v %v", time.Since(startTime), r.RemoteAddr, r.Proto, r.Method, r.RequestURI, sw.status, sw.length, displayName)
+		log.Printf("%v %v %v %v %v %v %v %v",
+			time.Since(startTime),
+			r.RemoteAddr,
+			r.Proto, r.Method,
+			r.RequestURI,
+			sw.status,
+			sw.length,
+			displayName)
 	})
 }
