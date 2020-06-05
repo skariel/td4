@@ -34,7 +34,7 @@ const (
 	cacheTTLSeconds                     = 7
 	rateLimitTTLSeconds                 = 30
 	rateLimitMax                        = 30
-	rateLimitExpireJobIntervalSeconds   = 120
+	rateLimitExpireJobIntervalSeconds   = 3600
 )
 
 func main() {
