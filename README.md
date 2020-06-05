@@ -60,5 +60,4 @@ npm update --save-dev
 # TODO: content in "about" page
 # TODO: deletion of tests
 # TODO: deletion of solutions
-# TODO: updating of tests
 # TODO: global stats
