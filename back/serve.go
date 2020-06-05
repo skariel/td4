@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +11,9 @@ import (
 
 	"github.com/danilopolani/gocialite"
 	"github.com/gorilla/mux"
+
+	cache "github.com/victorspringer/http-cache"
+	"github.com/victorspringer/http-cache/adapter/memory"
 
 	"../sql/db"
 	"./handlers"
@@ -25,6 +29,8 @@ const (
 	maxTitleLen                         = 256
 	maxDescLen                          = 2048
 	maxCodeLen                          = 8192
+	cacheCapacity                       = 100000
+	cacheTTLSeconds                     = 7
 )
 
 func main() {
@@ -67,7 +73,26 @@ func main() {
 
 	// apply middlewares
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
+
+	memcached, err := memory.NewAdapter(
+		memory.AdapterWithAlgorithm(memory.LRU),
+		memory.AdapterWithCapacity(cacheCapacity),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cacheClient, err := cache.NewClient(
+		cache.ClientWithAdapter(memcached),
+		cache.ClientWithTTL(cacheTTLSeconds*time.Second),
+	)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	h = middleware(h, q, gocialite.NewDispatcher())
+
+	h = cacheClient.Middleware(h)
 
 	// start some cleanup functions
 	go doEvery(cleaningPendingRunsPerUSerEveryrHrs*time.Hour, func() {
