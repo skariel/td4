@@ -20,8 +20,8 @@ import (
 
 // configuration consts
 const (
-	sleepTimeSeconds = 5
-	dockerImageName  = "td4:v1"
+	sleepTime       = 5 * time.Second
+	dockerImageName = "td4:v1"
 )
 
 func main() {
@@ -41,18 +41,28 @@ func main() {
 	log.Println("Connected to DB")
 
 	// main work loop: get run, run, report, repeat!
+	shouldSleep := false
+
 	for {
-		time.Sleep(sleepTimeSeconds * time.Second)
+		if shouldSleep {
+			time.Sleep(sleepTime)
+		}
 
 		runs, err := q.FetchSomeRun(context.Background())
 		if err != nil {
 			log.Printf("error while fetching run: %v", err)
+
+			shouldSleep = true
+
 			continue
 		}
 
 		if len(runs) == 0 {
+			shouldSleep = true
 			continue
 		}
+
+		shouldSleep = false
 
 		// we have a run!
 		run := runs[0]
@@ -61,25 +71,32 @@ func main() {
 		sol, tes, conf, err := getCodesAndConf(ctx, &run, q)
 		if err != nil {
 			log.Printf("error getting run data: %v for run: %v", err, run)
+
+			shouldSleep = true
+
 			continue
 		}
 
 		suites, err := runContainer(ctx, cli, tes, sol, conf, q, dbase, run.ID)
 		if err != nil {
 			log.Printf("error running container: %v", err)
+
+			shouldSleep = true
+
 			continue
 		}
 
 		if suites == nil {
 			log.Print("no results to show")
+
 			continue
 		}
 
 		if len(suites) == 0 {
 			log.Print("zero results")
+
 			continue
 		}
-
 	}
 }
 
