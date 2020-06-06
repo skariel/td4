@@ -62,3 +62,5 @@ npm update --save-dev
 # TODO: deletion of solutions
 # TODO: global stats
 # TODO: consider fasthttp
+# TODO: nicer ui
+

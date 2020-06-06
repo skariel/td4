@@ -102,7 +102,6 @@ func NewLimiter(cleanEvery, windowSize time.Duration, maxRate float64) *Limiter 
 			}
 			l.rwlock.Unlock()
 		}
-
 	})
 
 	return l
@@ -110,7 +109,12 @@ func NewLimiter(cleanEvery, windowSize time.Duration, maxRate float64) *Limiter 
 
 // Handler rate limitting middleware
 func (l *Limiter) Handler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(l.Middleware(next.ServeHTTP))
+}
+
+// Middleware rate limitting middleware
+func (l *Limiter) Middleware(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
 			ise(w, err)
@@ -123,8 +127,8 @@ func (l *Limiter) Handler(next http.Handler) http.Handler {
 			return
 		}
 		// not limited
-		next.ServeHTTP(w, r)
-	})
+		next(w, r)
+	}
 }
 
 func doEvery(d time.Duration, fn func()) {

@@ -34,8 +34,14 @@ const (
 	cacheCapacity                   = 50000
 	cacheTTL                        = 7 * time.Second
 	globalLimiterCleanEvery         = 120 * time.Second
-	globalLimiterWindowSize         = 10 * time.Second
-	globalLimiterMaxRate            = 2.0
+	globalLimiterWindowSize         = 2 * time.Second
+	globalLimiterMaxRate            = 4.0
+	newTestLimiterCleanEvery        = 10 * time.Hour
+	newTestLimiterWindowSize        = 5 * time.Hour
+	newTestLimiterMaxRate           = 5.0
+	editTestLimiterCleanEvery       = 2 * time.Hour
+	editTestLimiterWindowSize       = 1 * time.Hour
+	editTestLimiterMaxRate          = 10.0
 )
 
 func main() {
@@ -66,17 +72,39 @@ func main() {
 	r.HandleFunc("/auth/github/callback", handlers.SocialCallbackHandler).Methods("GET")
 
 	// custom handlers
-	r.HandleFunc("/api/create_test", handlers.CreateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen)).Methods("POST")
-	r.HandleFunc("/api/create_solution", handlers.CreateSolutionCodeConfigurator(maxCodeLen)).Methods("POST")
+
+	newTestLmt := handlers.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
+	editTestLmt := handlers.NewLimiter(editTestLimiterCleanEvery, editTestLimiterWindowSize, editTestLimiterMaxRate)
+	newSolutionLmt := handlers.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
+	editSolutionLmt := handlers.NewLimiter(editTestLimiterCleanEvery, editTestLimiterWindowSize, editTestLimiterMaxRate)
+
+	r.HandleFunc("/api/create_test",
+		newTestLmt.Middleware(
+			handlers.CreateTestCodeConfigurator(
+				maxTitleLen, maxDescLen, maxCodeLen))).Methods("POST")
+
+	r.HandleFunc("/api/create_solution",
+		newSolutionLmt.Middleware(
+			handlers.CreateSolutionCodeConfigurator(
+				maxCodeLen))).Methods("POST")
+
+	r.HandleFunc("/api/update_solution",
+		editSolutionLmt.Middleware(
+			handlers.UpdateSolutionCodeConfigurator(
+				maxCodeLen))).Methods("POST")
+
+	r.HandleFunc("/api/update_test",
+		editTestLmt.Middleware(
+			handlers.UpdateTestCodeConfigurator(
+				maxTitleLen, maxDescLen, maxCodeLen))).Methods("POST")
+
 	r.HandleFunc("/api/test/{id}", handlers.GetTestByID).Methods("GET")
 	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")
 	r.HandleFunc("/api/solutions_by_test/{id}/{offset}", handlers.SolutionCodesByTest).Methods("GET")
 	r.HandleFunc("/api/solution/{id}", handlers.SolutionCodeByID).Methods("GET")
 	r.HandleFunc("/api/results_by_run/{id}", handlers.ResultsByRun).Methods("GET")
-	r.HandleFunc("/api/update_solution", handlers.UpdateSolutionCodeConfigurator(maxCodeLen)).Methods("POST")
-	r.HandleFunc("/api/update_test", handlers.UpdateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen)).Methods("POST")
 
-	// apply middlewares
+	// apply global middlewares
 
 	// timeout
 	h := http.TimeoutHandler(r, httptimeout, "Timeout!\n")
