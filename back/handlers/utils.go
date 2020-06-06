@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"../../sql/db"
+	"sql/db"
 )
 
 type key int

@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"../../sql/db"
+	"sql/db"
+
 	"github.com/gorilla/mux"
 )
 

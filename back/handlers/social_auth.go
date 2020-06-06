@@ -13,7 +13,7 @@ import (
 	"github.com/danilopolani/gocialite"
 	"github.com/dgrijalva/jwt-go"
 
-	"../../sql/db"
+	"sql/db"
 )
 
 const jwtExpiryDelayHrs = 24 * 12 * 30

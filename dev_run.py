@@ -20,9 +20,10 @@ class FileEventManager:
 
 
 class AsyncProcess:
-    def __init__(self, display_name, command, q, prefix_path_filter, postfix_path_filter):
+    def __init__(self, display_name, command, cwd, q, prefix_path_filter, postfix_path_filter):
         self.display_name = display_name
         self.command = command
+        self.cwd = cwd
         self.server = None
         self.ps = None
         self.pe = None
@@ -38,7 +39,7 @@ class AsyncProcess:
             any(p.startswith(pp) for pp in self.prefix_path_filter)
 
     def run(self):
-        self.server = Popen(self.command, stdout=PIPE, stderr=PIPE, encoding='utf-8', universal_newlines=True, bufsize=1, shell=True, preexec_fn=os.setsid)
+        self.server = Popen(self.command, stdout=PIPE, stderr=PIPE, encoding='utf-8', universal_newlines=True, bufsize=1, shell=True, preexec_fn=os.setsid, cwd=self.cwd)
         self.ps = Process(target=self.continuous_read, args=(self.server.stdout, 'std'))
         self.pe = Process(target=self.continuous_read, args=(self.server.stderr, 'err'))
         self.ps.start()
@@ -80,14 +81,16 @@ if __name__=='__main__':
     services = [
         AsyncProcess(
             display_name='API',
-            command='go run ./back',
+            command='go run .',
+            cwd='./back',
             q=q,
             prefix_path_filter=[path+'back', path+'sql/db'],
             postfix_path_filter=['.go']
         ),
         AsyncProcess(
             display_name='WRK',
-            command='go run ./test_worker',
+            command='go run .',
+            cwd='./test_worker',
             q=q,
             prefix_path_filter=[path+'test_worker', path+'sql/db'],
             postfix_path_filter=['.go']

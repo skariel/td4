@@ -10,7 +10,7 @@ import (
 	"log"
 	"time"
 
-	"../sql/db"
+	"sql/db"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -25,13 +25,12 @@ const (
 )
 
 func main() {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	cli, err := client.NewEnvClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	ctx := context.Background()
-	cli.NegotiateAPIVersion(ctx)
 
 	// connect to the DB
 	q, dbase, err := db.ConnectDB()
@@ -105,7 +104,7 @@ func runContainer(
 			CPUPeriod:  int64(conf.CpuPeriod),
 			CPUQuota:   int64(conf.CpuQuota),
 		},
-	}, nil, nil, "")
+	}, nil, "")
 
 	if err != nil {
 		return nil, err
@@ -294,16 +293,9 @@ func runRun(
 		return err
 	}
 
-	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
-	select {
-	case err = <-errCh:
-		if err != nil {
-			return err
-		}
-	case <-statusCh:
-	}
+	_, err = cli.ContainerWait(ctx, resp.ID)
 
-	return nil
+	return err
 }
 
 func getCodesAndConf(
