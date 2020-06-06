@@ -40,6 +40,12 @@ func forb(w http.ResponseWriter) {
 	fmt.Fprint(w, "forbidden")
 }
 
+func limited(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusTooManyRequests)
+	fmt.Fprint(w, "too many requests")
+}
+
 func expectationFailure(w http.ResponseWriter, err string) {
 	w.WriteHeader(http.StatusExpectationFailed)
 	fmt.Fprint(w, err)

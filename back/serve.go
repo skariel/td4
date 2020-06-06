@@ -32,7 +32,10 @@ const (
 	maxDescLen                          = 2048
 	maxCodeLen                          = 8192
 	cacheCapacity                       = 50000
-	cacheTTLSeconds                     = 7
+	cacheTTLSeconds                     = 1
+	globalLimiterCleanEvery             = 120 * time.Second
+	globalLimiterWindowSize             = 10 * time.Second
+	globalLimiterMaxRate                = 2.0
 )
 
 func main() {
@@ -77,6 +80,10 @@ func main() {
 
 	// timeout
 	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
+
+	// global rate-limiting
+	lmt := handlers.NewLimiter(globalLimiterCleanEvery, globalLimiterWindowSize, globalLimiterMaxRate)
+	h = lmt.Handler(h)
 
 	// my middleware (cors, logging, context etc.)
 	h = middleware(h, q, gocialite.NewDispatcher())
