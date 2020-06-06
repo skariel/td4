@@ -23,19 +23,19 @@ import (
 
 // some conf
 const (
-	httptimeoutSeconds                  = 3.0
-	cleaningPendingRunsPerUSerEveryrHrs = 8.0
-	cleaningLongRunsEveryrHrs           = 1.0
-	port                                = ":8081"
-	corsOrigin                          = "*"
-	maxTitleLen                         = 256
-	maxDescLen                          = 2048
-	maxCodeLen                          = 8192
-	cacheCapacity                       = 50000
-	cacheTTLSeconds                     = 1
-	globalLimiterCleanEvery             = 120 * time.Second
-	globalLimiterWindowSize             = 10 * time.Second
-	globalLimiterMaxRate                = 2.0
+	httptimeout                     = 3.0 * time.Second
+	cleaningPendingRunsPerUSerEvery = 8.0 * time.Hour
+	cleaningLongRunsEvery           = 1.0 * time.Hour
+	port                            = ":8081"
+	corsOrigin                      = "*"
+	maxTitleLen                     = 256
+	maxDescLen                      = 2048
+	maxCodeLen                      = 8192
+	cacheCapacity                   = 50000
+	cacheTTL                        = 7 * time.Second
+	globalLimiterCleanEvery         = 120 * time.Second
+	globalLimiterWindowSize         = 10 * time.Second
+	globalLimiterMaxRate            = 2.0
 )
 
 func main() {
@@ -79,7 +79,7 @@ func main() {
 	// apply middlewares
 
 	// timeout
-	h := http.TimeoutHandler(r, httptimeoutSeconds*time.Second, "Timeout!\n")
+	h := http.TimeoutHandler(r, httptimeout, "Timeout!\n")
 
 	// global rate-limiting
 	lmt := handlers.NewLimiter(globalLimiterCleanEvery, globalLimiterWindowSize, globalLimiterMaxRate)
@@ -99,7 +99,7 @@ func main() {
 
 	cacheClient, err := cache.NewClient(
 		cache.ClientWithAdapter(memcached),
-		cache.ClientWithTTL(cacheTTLSeconds*time.Second),
+		cache.ClientWithTTL(cacheTTL),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -108,14 +108,14 @@ func main() {
 	h = cacheClient.Middleware(h)
 
 	// start some cleanup functions
-	go doEvery(cleaningPendingRunsPerUSerEveryrHrs*time.Hour, func() {
+	go doEvery(cleaningPendingRunsPerUSerEvery, func() {
 		log.Println("cleaning pending runs per user")
 		err = q.CleanPendingRunsPerUSer(context.Background())
 		if err != nil {
 			log.Printf("error while cleaning pending tasks per use: %v", err)
 		}
 	})
-	go doEvery(cleaningLongRunsEveryrHrs*time.Hour, func() {
+	go doEvery(cleaningLongRunsEvery, func() {
 		log.Println("cleaning long runs")
 		err = q.FailLongRuns(context.Background())
 		if err != nil {
