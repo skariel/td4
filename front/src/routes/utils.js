@@ -3,28 +3,34 @@
 const basepath = "https://127.0.0.1:8081/"
 
 async function myfetch(user, r, method, body) {
-    const res = await fetch(apipath(r), {
-        method: method,
-        body: body,
-        headers: {
-            'Authorization': 'Bearer ' + user.jwt_auth,
+    try {
+        const res = await fetch(apipath(r), {
+            method: method,
+            body: body,
+            headers: {
+                'Authorization': 'Bearer ' + user.jwt_auth,
+            }
+        });
+        var data = []
+        if (res.status == 200) {
+            data = await res.json();
+            if (data==null) {
+                data = []
+            }
         }
-    });
-    var data = []
-    if (res.status == 200) {
-        data = await res.json();
-        if (data==null) {
-            data = []
+        else {
+            data = await res.text();
+            if (data==null) {
+                data = ""
+            }
+            alert(data)
         }
+        return {data: data, status: res.status}
     }
-    else {
-        data = await res.text();
-        if (data==null) {
-            data = ""
-        }
-        alert(data)
+    catch (e) {
+        alert(`problem fetching ${apipath(r)}`)
+        return {data: [], status:-1}
     }
-    return {data: data, status: res.status}
 }
 
 export async function post(user, r, o) {
