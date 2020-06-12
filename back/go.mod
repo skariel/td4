@@ -8,6 +8,7 @@ require (
 	github.com/danilopolani/gocialite v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/mux v1.7.4
+	github.com/lib/pq v1.7.0 // indirect
 	github.com/victorspringer/http-cache v0.0.0-20190721184638-fe78e97af707
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	gopkg.in/oleiade/reflections.v1 v1.0.0 // indirect
