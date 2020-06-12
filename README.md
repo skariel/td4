@@ -47,7 +47,19 @@ api + static rendered site
 
 update packages
 ---------------------
-go get -u all
+go:
+
+see all updatable go mods:
+go list -u -m all
+
+upgrade all:
+go get -u ./...
+
+upgrade sqlc:
+go get -u github.com/kyleconroy/sqlc/cmd/sqlc
+
+npm:
+
 edit package.json for new versions
 npm update --save
 npm update --save-dev
