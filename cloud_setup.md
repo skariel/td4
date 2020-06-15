@@ -68,3 +68,6 @@ create database skariel;
 psql -d skariel -f schema.sql
 
 
+run back
+--------------
+sudo -E ./back
