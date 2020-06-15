@@ -51,3 +51,5 @@ ip adresses of github pages:
 185.199.109.153
 185.199.110.153
 185.199.111.153
+
+CNAME * skariel.github.io
