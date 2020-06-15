@@ -58,3 +58,13 @@ CNAME * skariel.github.io
 github pages
 -------------------
 https://github.com/skariel/td4_front
+
+
+psql
+---------------
+sudo apt install postgresql postgresql-contrib
+sudo -i -u postgres psql
+create database skariel;
+psql -d skariel -f schema.sql
+
+
