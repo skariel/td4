@@ -44,7 +44,7 @@ const (
 )
 
 func main() {
-	port = ":" + os.Getenv("TD4_API_PORT")
+	port := ":" + os.Getenv("TD4_API_PORT")
 
 	// configure root directory
 	td4Root := os.Getenv("TD4_ROOT")
