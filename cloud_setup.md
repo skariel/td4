@@ -53,3 +53,8 @@ ip adresses of github pages:
 185.199.111.153
 
 CNAME * skariel.github.io
+
+
+github pages
+-------------------
+https://github.com/skariel/td4_front
