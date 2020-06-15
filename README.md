@@ -4,7 +4,7 @@ http conf:
 port and CORS in `back/serve.go`
 redirect and homepage in github oauth app
 POSTGRES conf in `sql/db/dbconn.go`
-env variable: `TD4`
+env variables: `TD4_*`
 
 Frontend
 -----------

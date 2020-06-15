@@ -135,7 +135,7 @@ func GetUserFromAuthorizationHeader(r *http.Request) *db.Td4User {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(os.Getenv("td4_jwt_secret")), nil
+		return []byte(os.Getenv("TD4_JWT_SECRET")), nil
 	})
 	if err != nil {
 		return nil

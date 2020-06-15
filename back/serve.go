@@ -26,7 +26,6 @@ const (
 	httptimeout                     = 3.0 * time.Second
 	cleaningPendingRunsPerUSerEvery = 8.0 * time.Hour
 	cleaningLongRunsEvery           = 1.0 * time.Hour
-	port                            = ":8081"
 	corsOrigin                      = "*"
 	maxTitleLen                     = 256
 	maxDescLen                      = 2048
@@ -45,6 +44,8 @@ const (
 )
 
 func main() {
+	port = ":" + os.Getenv("TD4_API_PORT")
+
 	// configure root directory
 	td4Root := os.Getenv("TD4_ROOT")
 	httpRoot := td4Root + "/back"
@@ -62,10 +63,16 @@ func main() {
 	r := mux.NewRouter()
 
 	// static files
-	r.PathPrefix("/static/").Handler(
-		http.StripPrefix(
-			"/static/",
-			http.FileServer(http.Dir(httpRoot+"/static/")))).Methods("GET")
+	shouldServeStatic := os.Getenv("TD4_SERVE_STATIC")
+	if shouldServeStatic == "1" {
+		log.Println("Serving static")
+		r.PathPrefix("/static/").Handler(
+			http.StripPrefix(
+				"/static/",
+				http.FileServer(http.Dir(httpRoot+"/static/")))).Methods("GET")
+	} else {
+		log.Println("Not serving static")
+	}
 
 	// social login
 	r.HandleFunc("/auth/github", handlers.SocialRedirectHandler).Methods("GET")
