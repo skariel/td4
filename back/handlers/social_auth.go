@@ -32,9 +32,9 @@ func GetGocialFromContext(r *http.Request) *gocialite.Dispatcher {
 // SocialRedirectHandler handle login with github
 func SocialRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	appSettings := map[string]string{
-		"clientID":     os.Getenv("github_client_id"),
-		"clientSecret": os.Getenv("github_client_secret"),
-		"redirectURL":  "https://localhost:8081/auth/github/callback",
+		"clientID":     os.Getenv("TD4_github_client_id"),
+		"clientSecret": os.Getenv("TD4_github_client_secret"),
+		"redirectURL":  "https://api.solvemytest.dev/auth/github/callback",
 	}
 	gocial := GetGocialFromContext(r)
 	authURL, err := gocial.New().
@@ -75,7 +75,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		"avatar":       user.Avatar,
 		"id":           user.ID,
 	})
-	signedToken, err := jwtToken.SignedString([]byte(os.Getenv("td4_jwt_secret")))
+	signedToken, err := jwtToken.SignedString([]byte(os.Getenv("TD4_JWT_SECRET")))
 
 	if err != nil {
 		ise(w, err)
@@ -94,34 +94,16 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	jwtCookie := http.Cookie{
 		Name:     "jwt_auth",
-		Secure:   false,
+		Secure:   true,
 		Path:     "/",
+		Domain:   "solvemytest.dev",
 		HttpOnly: false,
 		Value:    signedToken,
 		Expires:  time.Now().Add(time.Hour * jwtExpiryDelayHrs),
-		SameSite: http.SameSiteDefaultMode}
+		SameSite: http.SameSiteStrictMode}
 	http.SetCookie(w, &jwtCookie)
 
-	userDisplayNameCookie := http.Cookie{
-		Name:     "user_display_name",
-		Secure:   false,
-		Path:     "/",
-		HttpOnly: false,
-		Value:    user.Username,
-		Expires:  time.Now().Add(time.Hour * jwtExpiryDelayHrs),
-		SameSite: http.SameSiteDefaultMode}
-	http.SetCookie(w, &userDisplayNameCookie)
-
-	userAvatarCookie := http.Cookie{
-		Name:     "user_avatar",
-		Secure:   false,
-		Path:     "/",
-		HttpOnly: false,
-		Value:    user.Avatar,
-		Expires:  time.Now().Add(time.Hour * jwtExpiryDelayHrs),
-		SameSite: http.SameSiteDefaultMode}
-	http.SetCookie(w, &userAvatarCookie)
-	http.Redirect(w, r, "http://localhost:3000", http.StatusFound)
+	http.Redirect(w, r, os.Getenv("TD4_SOCIAL_AUTH_REDIRECT"), http.StatusFound)
 }
 
 // GetUserFromAuthorizationHeader from jwt

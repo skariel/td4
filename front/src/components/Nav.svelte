@@ -5,7 +5,7 @@
 
 	let user = {};
     onMount(()=>{
-        user = getUser();
+		user = getUser();
     })
 
 	export let segment;

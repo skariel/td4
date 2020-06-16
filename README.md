@@ -75,4 +75,6 @@ npm update --save-dev
 # TODO: global stats
 # TODO: consider fasthttp
 # TODO: nicer ui
+# TODO: separate static path
+# TODO: invalidate cache on new test and make cache TTL longer
 

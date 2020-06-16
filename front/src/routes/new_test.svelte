@@ -4,6 +4,7 @@
 	import { writable } from "svelte/store";
 	import { goto } from '@sapper/app';
 
+	// TODO: fix these to work "onmount"
 	let user = null;
 	const tname = writable(localStorage.getItem("tname") || "");
 	tname.subscribe(val => localStorage.setItem("tname", val));

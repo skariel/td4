@@ -1,6 +1,7 @@
 // TODO: list async fetch
 
-const basepath = "https://127.0.0.1:8081/"
+// const basepath = "https://127.0.0.1:8081/"
+const basepath = "https://api.solvemytest.dev/"
 
 async function myfetch(user, r, method, body) {
     try {
@@ -77,13 +78,32 @@ export function init_location_change_event() {
     });
 }
 
-export function getUser() {
-    let user = {};
-    let cookies = document.cookie.split(';')
-    for (const ix in cookies) {
-        const c = cookies[ix]
-        const cs = c.split('=')
-        user[cs[0].trim().replace('user_', '')] = cs[1];
+function check_cookie_name(name) {
+    var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    if (match) {
+        return match[2];
     }
+    else{
+        return null;
+    }
+}
+
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
+export function getUser() {
+    let jwt_cookie = check_cookie_name("jwt_auth")
+    if (jwt_cookie == null) {
+        return {}
+    }
+    let user = parseJwt(jwt_cookie)
+    user["jwt_auth"] = jwt_cookie
     return user
 }
