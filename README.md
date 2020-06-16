@@ -77,4 +77,9 @@ npm update --save-dev
 # TODO: nicer ui
 # TODO: separate static path
 # TODO: invalidate cache on new test and make cache TTL longer
+# TODO: a "loading..." message instead of "no tests yet". These are different cases!
+# TODO: test page- when reloaded is all undefined!
+# TODO: "loading" message for showing solutions, and tests
+# TODO: removeold container periodically
+
 
