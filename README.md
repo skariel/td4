@@ -80,6 +80,6 @@ npm update --save-dev
 # TODO: a "loading..." message instead of "no tests yet". These are different cases!
 # TODO: test page- when reloaded is all undefined!
 # TODO: "loading" message for showing solutions, and tests
-# TODO: removeold container periodically
+# TODO: remove old, stopped containers periodically
 
 

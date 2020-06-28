@@ -16,9 +16,9 @@ import (
 
 	"github.com/victorspringer/http-cache/adapter/memory"
 
-	"back/handlers"
+	"td4/back/handlers"
 
-	"sql/db"
+	"td4/sql/db"
 )
 
 // some conf
