@@ -35,6 +35,7 @@ func main() {
 
 	// connect to the DB
 	q, dbase := db.ConnectDB()
+
 	log.Println("Connected to DB")
 
 	// main work loop: get run, run, report, repeat!
