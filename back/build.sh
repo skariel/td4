@@ -1,5 +1,5 @@
 echo "COMPILING!"
-cd back/server_api
+cd server_api
 go build .
 cd ../worker_test
 go build .
