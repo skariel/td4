@@ -66,7 +66,6 @@ npm update --save-dev
 # TODO: a "loading..." message instead of "no tests yet". These are different cases!
 # TODO: test page- when reloaded is all undefined!
 # TODO: remove old, stopped containers periodically
-# TODO: cache only valid urls
 
 
 

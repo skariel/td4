@@ -34,11 +34,7 @@ func main() {
 	ctx := context.Background()
 
 	// connect to the DB
-	q, dbase, err := db.ConnectDB()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	q, dbase := db.ConnectDB()
 	log.Println("Connected to DB")
 
 	// main work loop: get run, run, report, repeat!

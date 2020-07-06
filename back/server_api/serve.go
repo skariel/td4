@@ -11,10 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	cache "github.com/victorspringer/http-cache"
-
-	"github.com/victorspringer/http-cache/adapter/memory"
-
 	"td4/back/db"
 	"td4/back/server_api/handlers"
 	"td4/back/server_api/middlewares"
@@ -26,7 +22,6 @@ const (
 	httptimeout                     = 3.0 * time.Second
 	cleaningPendingRunsPerUSerEvery = 8.0 * time.Hour
 	cleaningLongRunsEvery           = 1.0 * time.Hour
-	corsOrigin                      = "*"
 	maxTitleLen                     = 256
 	maxDescLen                      = 2048
 	maxCodeLen                      = 8192
@@ -47,13 +42,10 @@ func main() {
 	port := ":" + os.Getenv("TD4_API_PORT")
 	certificateFilePath := os.Getenv("TD4_CERTIFICATE_FILE_PATH")
 	keyFilePath := os.Getenv("TD4_KEY_FILE_PATH")
+	corsOrigin := os.Getenv("TD4_CORS_ORIGIN")
 
 	// connect to the DB
-	q, _, err := db.ConnectDB()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	q, _ := db.ConnectDB()
 	log.Println("Connected to DB")
 
 	// routing
@@ -64,7 +56,6 @@ func main() {
 	r.HandleFunc("/auth/github/callback", handlers.SocialCallbackHandler).Methods("GET")
 
 	// custom handlers
-
 	newTestLmt := middlewares.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
 	editTestLmt := middlewares.NewLimiter(editTestLimiterCleanEvery, editTestLimiterWindowSize, editTestLimiterMaxRate)
 	newSolutionLmt := middlewares.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
@@ -97,43 +88,24 @@ func main() {
 	r.HandleFunc("/api/results_by_run/{id}", handlers.ResultsByRun).Methods("GET")
 
 	// apply global middlewares
-
 	h := http.TimeoutHandler(r, httptimeout, "Timeout!\n")
 	lmt := middlewares.NewLimiter(globalLimiterCleanEvery, globalLimiterWindowSize, globalLimiterMaxRate)
 	h = lmt.Handler(h)
 	h = middlewares.Logging(h, q, gocialite.NewDispatcher(), corsOrigin)
-
-	// caching. doesn't reach logging
-	// TODO: cache per endpoint and only relevant params (don't cache garbge URLs)
-	memcached, err := memory.NewAdapter(
-		memory.AdapterWithAlgorithm(memory.LRU),
-		memory.AdapterWithCapacity(cacheCapacity),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cacheClient, err := cache.NewClient(
-		cache.ClientWithAdapter(memcached),
-		cache.ClientWithTTL(cacheTTL),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	cacheClient := middlewares.NewMemoryCache(cacheCapacity, cacheTTL)
 	h = cacheClient.Middleware(h)
 
 	// start some cleanup functions (DB)
 	go utils.DoEvery(cleaningPendingRunsPerUSerEvery, func() {
 		log.Println("cleaning pending runs per user")
-		err = q.CleanPendingRunsPerUSer(context.Background())
+		err := q.CleanPendingRunsPerUSer(context.Background())
 		if err != nil {
 			log.Printf("error while cleaning pending tasks per use: %v", err)
 		}
 	})
 	go utils.DoEvery(cleaningLongRunsEvery, func() {
 		log.Println("cleaning long runs")
-		err = q.FailLongRuns(context.Background())
+		err := q.FailLongRuns(context.Background())
 		if err != nil {
 			log.Printf("error while cleaning long runs: %v", err)
 		}

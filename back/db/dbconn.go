@@ -3,6 +3,7 @@ package db
 
 import (
 	"database/sql"
+	"log"
 
 	gdb "td4/back/db/generated"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // ConnectDB establish the global DB connection
-func ConnectDB() (*gdb.Queries, *sql.DB, error) {
+func ConnectDB() (*gdb.Queries, *sql.DB) {
 	connStr := `user=postgres
 				dbname=skariel
 				password=1234567
@@ -25,8 +26,8 @@ func ConnectDB() (*gdb.Queries, *sql.DB, error) {
 
 	err = dbc.Ping()
 	if err != nil {
-		return nil, nil, err
+		log.Fatal(err)
 	}
 
-	return gdb.New(dbc), dbc, nil
+	return gdb.New(dbc), dbc
 }
