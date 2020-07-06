@@ -10,7 +10,6 @@ worker conf consts in `back/worker_test/worker.go`
 export TD4_github_client_id=
 export TD4_github_client_secret=
 export TD4_JWT_SECRET=
-export TD4_ROOT=
 export TD4_API_PORT=
 export TD4_SOCIAL_AUTH_REDIRECT="https://api.solvemytest.dev/auth/github/callback"
 export TD4_SOCIAL_AUTH_FINAL_DEST=
