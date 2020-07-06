@@ -3,6 +3,7 @@ worker_test
 !worker_test/
 server_api
 !server_api/
+build/
 *.crt
 *.key
 *.ignore
