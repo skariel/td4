@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from "svelte/store";
 	import { goto } from '@sapper/app';
-	
+
 	// TODO: fix these to work "onmount"
 	let user = null;
 	const scode = writable(localStorage.getItem("scode") || "");
