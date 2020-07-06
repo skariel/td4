@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 	"td4/back/server_api/handlers"
+	"td4/back/utils"
 	"time"
 )
 
@@ -86,7 +87,7 @@ func NewLimiter(cleanEvery, windowSize time.Duration, maxRate float64) *Limiter 
 		maxRate:    maxRate,
 	}
 
-	go doEvery(cleanEvery, func() {
+	go utils.DoEvery(cleanEvery, func() {
 		// iterate over map and clean it. Minimal retention
 		var keysToDelete []string
 		now := time.Now()
@@ -130,13 +131,5 @@ func (l *Limiter) Middleware(next func(http.ResponseWriter, *http.Request)) func
 		}
 		// not limited
 		next(w, r)
-	}
-}
-
-func doEvery(d time.Duration, fn func()) {
-	fn()
-
-	for range time.Tick(d) {
-		fn()
 	}
 }

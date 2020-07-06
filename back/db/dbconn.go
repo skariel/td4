@@ -21,7 +21,7 @@ func ConnectDB() (*gdb.Queries, *sql.DB) {
 	dbc, err := sql.Open("postgres", connStr)
 
 	if err != nil {
-		return nil, nil, err
+		log.Fatal(err)
 	}
 
 	err = dbc.Ping()

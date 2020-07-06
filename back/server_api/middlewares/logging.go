@@ -34,7 +34,7 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 }
 
 // Logging a logging middleware
-func Logging(next http.Handler, q *gdb.Queries, g *gocialite.Dispatcher, corsOrigin string) http.Handler {
+func Logging(next http.Handler, q *gdb.Queries, g *gocialite.Dispatcher, corsOrigin string, jwtSecret []byte) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
 
@@ -50,7 +50,7 @@ func Logging(next http.Handler, q *gdb.Queries, g *gocialite.Dispatcher, corsOri
 		}
 
 		// get user and put into context
-		user := handlers.GetUserFromAuthorizationHeader(r)
+		user := handlers.GetUserFromAuthorizationHeader(r, jwtSecret)
 		r = handlers.WithUserInContext(user, r)
 
 		// put querier into context

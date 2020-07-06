@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/danilopolani/gocialite"
@@ -36,24 +35,30 @@ const (
 	editTestLimiterCleanEvery       = 2 * time.Hour
 	editTestLimiterWindowSize       = 1 * time.Hour
 	editTestLimiterMaxRate          = 10.0
+	redirectURL                     = "https://api.solvemytest.dev/auth/github/callback"
 )
 
 func main() {
-	port := ":" + os.Getenv("TD4_API_PORT")
-	certificateFilePath := os.Getenv("TD4_CERTIFICATE_FILE_PATH")
-	keyFilePath := os.Getenv("TD4_KEY_FILE_PATH")
-	corsOrigin := os.Getenv("TD4_CORS_ORIGIN")
+	port := ":" + utils.LoggedGetEnv("TD4_API_PORT")
+	certificateFilePath := utils.LoggedGetEnv("TD4_CERTIFICATE_FILE_PATH")
+	keyFilePath := utils.LoggedGetEnv("TD4_KEY_FILE_PATH")
+	corsOrigin := utils.LoggedGetEnv("TD4_CORS_ORIGIN")
+	clientID := utils.LoggedGetEnv("TD4_github_client_id")
+	clientSecret := utils.LoggedGetEnv("TD4_github_client_secret")
+	jwtSecret := []byte(utils.LoggedGetEnv("TD4_JWT_SECRET"))
+	socialAuthFinalDest := utils.LoggedGetEnv("TD4_SOCIAL_AUTH_REDIRECT")
 
 	// connect to the DB
 	q, _ := db.ConnectDB()
+
 	log.Println("Connected to DB")
 
 	// routing
 	r := mux.NewRouter()
 
 	// social login
-	r.HandleFunc("/auth/github", handlers.SocialRedirectHandler).Methods("GET")
-	r.HandleFunc("/auth/github/callback", handlers.SocialCallbackHandler).Methods("GET")
+	r.HandleFunc("/auth/github", handlers.CreateSocialRedirectHandlerConfigurator(clientID, clientSecret, redirectURL)).Methods("GET")
+	r.HandleFunc("/auth/github/callback", handlers.CreateSocialCallbackHandlerConfigurator(jwtSecret, socialAuthFinalDest)).Methods("GET")
 
 	// custom handlers
 	newTestLmt := middlewares.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
@@ -91,7 +96,7 @@ func main() {
 	h := http.TimeoutHandler(r, httptimeout, "Timeout!\n")
 	lmt := middlewares.NewLimiter(globalLimiterCleanEvery, globalLimiterWindowSize, globalLimiterMaxRate)
 	h = lmt.Handler(h)
-	h = middlewares.Logging(h, q, gocialite.NewDispatcher(), corsOrigin)
+	h = middlewares.Logging(h, q, gocialite.NewDispatcher(), corsOrigin, jwtSecret)
 	cacheClient := middlewares.NewMemoryCache(cacheCapacity, cacheTTL)
 	h = cacheClient.Middleware(h)
 
