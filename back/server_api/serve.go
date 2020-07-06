@@ -35,7 +35,6 @@ const (
 	editTestLimiterCleanEvery       = 2 * time.Hour
 	editTestLimiterWindowSize       = 1 * time.Hour
 	editTestLimiterMaxRate          = 10.0
-	redirectURL                     = "https://api.solvemytest.dev/auth/github/callback"
 )
 
 func main() {
@@ -46,7 +45,8 @@ func main() {
 	clientID := utils.LoggedGetEnv("TD4_github_client_id")
 	clientSecret := utils.LoggedGetEnv("TD4_github_client_secret")
 	jwtSecret := []byte(utils.LoggedGetEnv("TD4_JWT_SECRET"))
-	socialAuthFinalDest := utils.LoggedGetEnv("TD4_SOCIAL_AUTH_REDIRECT")
+	socialAuthFinalDest := utils.LoggedGetEnv("TD4_SOCIAL_AUTH_FINAL_DEST")
+	socialRedirectURL := utils.LoggedGetEnv("TD4_SOCIAL_AUTH_REDIRECT")
 
 	// connect to the DB
 	q, _ := db.ConnectDB()
@@ -57,7 +57,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// social login
-	r.HandleFunc("/auth/github", handlers.CreateSocialRedirectHandlerConfigurator(clientID, clientSecret, redirectURL)).Methods("GET")
+	r.HandleFunc("/auth/github", handlers.CreateSocialRedirectHandlerConfigurator(clientID, clientSecret, socialRedirectURL)).Methods("GET")
 	r.HandleFunc("/auth/github/callback", handlers.CreateSocialCallbackHandlerConfigurator(jwtSecret, socialAuthFinalDest)).Methods("GET")
 
 	// custom handlers
