@@ -81,6 +81,7 @@ run:
     - .github
     - build
     - web
+    - front
 
 issues:
   max-same-issues: 0

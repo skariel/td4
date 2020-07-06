@@ -13,7 +13,7 @@ import (
 	"github.com/danilopolani/gocialite"
 	"github.com/dgrijalva/jwt-go"
 
-	"td4/sql/db"
+	db "td4/back/db/generated"
 )
 
 const jwtExpiryDelayHrs = 24 * 12 * 30
@@ -47,7 +47,7 @@ func SocialRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		)
 
 	if err != nil {
-		ise(w, err)
+		Ise(w, err)
 		return
 	}
 
@@ -64,7 +64,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, _, err := gocial.Handle(state, code) // token not used
 	if err != nil {
-		ise(w, err)
+		Ise(w, err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	signedToken, err := jwtToken.SignedString([]byte(os.Getenv("TD4_JWT_SECRET")))
 
 	if err != nil {
-		ise(w, err)
+		Ise(w, err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func SocialCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Email:       user.Email,
 		Avatar:      user.Avatar})
 	if err != nil {
-		ise(w, err)
+		Ise(w, err)
 		return
 	}
 

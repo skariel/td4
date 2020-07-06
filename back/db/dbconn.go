@@ -4,12 +4,14 @@ package db
 import (
 	"database/sql"
 
+	gdb "td4/back/db/generated"
+
 	// for talking to postgres
 	_ "github.com/lib/pq"
 )
 
 // ConnectDB establish the global DB connection
-func ConnectDB() (*Queries, *sql.DB, error) {
+func ConnectDB() (*gdb.Queries, *sql.DB, error) {
 	connStr := `user=postgres
 				dbname=skariel
 				password=1234567
@@ -26,5 +28,5 @@ func ConnectDB() (*Queries, *sql.DB, error) {
 		return nil, nil, err
 	}
 
-	return New(dbc), dbc, nil
+	return gdb.New(dbc), dbc, nil
 }

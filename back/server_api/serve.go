@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/danilopolani/gocialite"
@@ -16,9 +15,10 @@ import (
 
 	"github.com/victorspringer/http-cache/adapter/memory"
 
-	"td4/back/handlers"
-
-	"td4/sql/db"
+	"td4/back/db"
+	"td4/back/server_api/handlers"
+	"td4/back/server_api/middlewares"
+	"td4/back/utils"
 )
 
 // some conf
@@ -45,11 +45,8 @@ const (
 
 func main() {
 	port := ":" + os.Getenv("TD4_API_PORT")
-
-	// configure root directory
-	td4Root := os.Getenv("TD4_ROOT")
-	httpRoot := td4Root + "/back"
-	log.Printf("httpRoot: %v", httpRoot)
+	certificateFilePath := os.Getenv("TD4_CERTIFICATE_FILE_PATH")
+	keyFilePath := os.Getenv("TD4_KEY_FILE_PATH")
 
 	// connect to the DB
 	q, _, err := db.ConnectDB()
@@ -62,28 +59,16 @@ func main() {
 	// routing
 	r := mux.NewRouter()
 
-	// static files
-	shouldServeStatic := os.Getenv("TD4_SERVE_STATIC")
-	if shouldServeStatic == "1" {
-		log.Println("Serving static")
-		r.PathPrefix("/static/").Handler(
-			http.StripPrefix(
-				"/static/",
-				http.FileServer(http.Dir(httpRoot+"/static/")))).Methods("GET")
-	} else {
-		log.Println("Not serving static")
-	}
-
 	// social login
 	r.HandleFunc("/auth/github", handlers.SocialRedirectHandler).Methods("GET")
 	r.HandleFunc("/auth/github/callback", handlers.SocialCallbackHandler).Methods("GET")
 
 	// custom handlers
 
-	newTestLmt := handlers.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
-	editTestLmt := handlers.NewLimiter(editTestLimiterCleanEvery, editTestLimiterWindowSize, editTestLimiterMaxRate)
-	newSolutionLmt := handlers.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
-	editSolutionLmt := handlers.NewLimiter(editTestLimiterCleanEvery, editTestLimiterWindowSize, editTestLimiterMaxRate)
+	newTestLmt := middlewares.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
+	editTestLmt := middlewares.NewLimiter(editTestLimiterCleanEvery, editTestLimiterWindowSize, editTestLimiterMaxRate)
+	newSolutionLmt := middlewares.NewLimiter(newTestLimiterCleanEvery, newTestLimiterWindowSize, newTestLimiterMaxRate)
+	editSolutionLmt := middlewares.NewLimiter(editTestLimiterCleanEvery, editTestLimiterWindowSize, editTestLimiterMaxRate)
 
 	r.HandleFunc("/api/create_test",
 		newTestLmt.Middleware(
@@ -113,17 +98,13 @@ func main() {
 
 	// apply global middlewares
 
-	// timeout
 	h := http.TimeoutHandler(r, httptimeout, "Timeout!\n")
-
-	// global rate-limiting
-	lmt := handlers.NewLimiter(globalLimiterCleanEvery, globalLimiterWindowSize, globalLimiterMaxRate)
+	lmt := middlewares.NewLimiter(globalLimiterCleanEvery, globalLimiterWindowSize, globalLimiterMaxRate)
 	h = lmt.Handler(h)
-
-	// my middleware (cors, logging, context etc.)
-	h = middleware(h, q, gocialite.NewDispatcher())
+	h = middlewares.Logging(h, q, gocialite.NewDispatcher(), corsOrigin)
 
 	// caching. doesn't reach logging
+	// TODO: cache per endpoint and only relevant params (don't cache garbge URLs)
 	memcached, err := memory.NewAdapter(
 		memory.AdapterWithAlgorithm(memory.LRU),
 		memory.AdapterWithCapacity(cacheCapacity),
@@ -142,15 +123,15 @@ func main() {
 
 	h = cacheClient.Middleware(h)
 
-	// start some cleanup functions
-	go doEvery(cleaningPendingRunsPerUSerEvery, func() {
+	// start some cleanup functions (DB)
+	go utils.DoEvery(cleaningPendingRunsPerUSerEvery, func() {
 		log.Println("cleaning pending runs per user")
 		err = q.CleanPendingRunsPerUSer(context.Background())
 		if err != nil {
 			log.Printf("error while cleaning pending tasks per use: %v", err)
 		}
 	})
-	go doEvery(cleaningLongRunsEvery, func() {
+	go utils.DoEvery(cleaningLongRunsEvery, func() {
 		log.Println("cleaning long runs")
 		err = q.FailLongRuns(context.Background())
 		if err != nil {
@@ -158,87 +139,9 @@ func main() {
 		}
 	})
 
+	// TODO: start some cleanup functions (Docker)
+
 	// serve!
 	log.Println("Serving at " + port)
-	log.Fatal(http.ListenAndServeTLS(port, httpRoot+"/server.crt", httpRoot+"/server.key", h))
-}
-
-func doEvery(d time.Duration, fn func()) {
-	fn()
-
-	for range time.Tick(d) {
-		fn()
-	}
-}
-
-type statusWriter struct {
-	http.ResponseWriter
-	status int
-	length int
-}
-
-func (w *statusWriter) WriteHeader(status int) {
-	w.status = status
-	w.ResponseWriter.WriteHeader(status)
-}
-
-func (w *statusWriter) Write(b []byte) (int, error) {
-	if w.status == 0 {
-		w.status = 200
-	}
-
-	n, err := w.ResponseWriter.Write(b)
-	w.length += n
-
-	return n, err
-}
-
-func middleware(next http.Handler, q *db.Queries, g *gocialite.Dispatcher) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		startTime := time.Now()
-
-		// enable CORS
-		w.Header().Set("Access-Control-Allow-Origin", corsOrigin)
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
-		// preflight stuff...
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		// get user and put into context
-		user := handlers.GetUserFromAuthorizationHeader(r)
-		r = handlers.WithUserInContext(user, r)
-
-		// put querier into context
-		r = handlers.WithQuerierInContext(q, r)
-
-		// put gocial into context
-		r = handlers.WithGocialInContext(g, r)
-
-		// Trim slash
-		if r.URL.Path != "/" {
-			r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
-		}
-
-		// Next!
-		sw := statusWriter{ResponseWriter: w}
-		next.ServeHTTP(&sw, r)
-
-		// Log
-		displayName := "nil"
-		if user != nil {
-			displayName = user.DisplayName
-		}
-		log.Printf("%v %v %v %v %v %v %v %v",
-			time.Since(startTime),
-			r.RemoteAddr,
-			r.Proto, r.Method,
-			r.RequestURI,
-			sw.status,
-			sw.length,
-			displayName)
-	})
+	log.Fatal(http.ListenAndServeTLS(port, certificateFilePath, keyFilePath, h))
 }

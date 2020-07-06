@@ -1,4 +1,9 @@
 .vscode
+worker_test
+!worker_test/
+server_api
+!server_api/
+*.crt
+*.key
 *.ignore
-back
-test_worker
+generated

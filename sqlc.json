@@ -2,13 +2,13 @@
   "version": "1",
   "packages": [
     {
-      "name": "db",
+      "name": "gdb",
       "emit_json_tags": true,
       "emit_prepared_queries": false,
       "emit_interface": true,
-      "path": "./sql/db",
-      "queries": "./sql/query/",
-      "schema": "./sql/schema/"
+      "path": "./back/db/generated",
+      "queries": "./back/db/sql/query/",
+      "schema": "./back/db/sql/schema/"
     }
   ],
   "overrides": [

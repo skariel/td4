@@ -1,9 +1,11 @@
-package handlers
+// Package middlewares My Own Middlewares!
+package middlewares
 
 import (
 	"net"
 	"net/http"
 	"sync"
+	"td4/back/server_api/handlers"
 	"time"
 )
 
@@ -61,15 +63,15 @@ func (l *Limiter) incGetRate(k string) float64 {
 	if !ok {
 		l.m[k] = entry{
 			prevTime:  now.Truncate(l.windowSize).Add(-l.windowSize),
-			prevCount: 0.0,
-			currCount: 1.0,
+			prevCount: 0,
+			currCount: 1,
 		}
 
-		return 1.0
+		return 1
 	}
 
 	e.slide(l.windowSize)
-	e.currCount += 1.0
+	e.currCount++
 	l.m[k] = e
 
 	return e.currRatePerWindow(l.windowSize)
@@ -117,13 +119,13 @@ func (l *Limiter) Middleware(next func(http.ResponseWriter, *http.Request)) func
 	return func(w http.ResponseWriter, r *http.Request) {
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
-			ise(w, err)
+			handlers.Ise(w, err)
 			return
 		}
 
 		rate := l.incGetRate(ip)
 		if rate > l.maxRate {
-			limited(w)
+			handlers.Limited(w)
 			return
 		}
 		// not limited

@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"td4/sql/db"
+	db "td4/back/db/generated"
 )
 
 type key int
@@ -29,33 +29,38 @@ func GetQuerierFromContext(r *http.Request) *db.Queries {
 	return r.Context().Value(key(contextKeyQuerier)).(*db.Queries)
 }
 
-func ise(w http.ResponseWriter, err error) {
+// Ise Internal Server Error
+func Ise(w http.ResponseWriter, err error) {
 	log.Printf("%v", err)
 	w.WriteHeader(http.StatusInternalServerError)
 	fmt.Fprint(w, "internal server error")
 }
 
-func forb(w http.ResponseWriter) {
+// Forb Forbidden
+func Forb(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusForbidden)
 	fmt.Fprint(w, "forbidden")
 }
 
-func limited(w http.ResponseWriter) {
+// Limited well, limited!
+func Limited(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusTooManyRequests)
 	fmt.Fprint(w, "too many requests")
 }
 
-func expectationFailure(w http.ResponseWriter, err string) {
+// ExpectationFailure expected something else
+func ExpectationFailure(w http.ResponseWriter, err string) {
 	w.WriteHeader(http.StatusExpectationFailed)
 	fmt.Fprint(w, err)
 }
 
-func rj(w http.ResponseWriter, i interface{}) {
+// Rj respond with json
+func Rj(w http.ResponseWriter, i interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 
 	err := json.NewEncoder(w).Encode(i)
 	if err != nil {
-		ise(w, err)
+		Ise(w, err)
 	}
 }

@@ -3,6 +3,8 @@ module td4
 go 1.14
 
 require (
+	cloud.google.com/go v0.60.0 // indirect
+	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/danilopolani/gocialite v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -10,11 +12,13 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gorilla/mux v1.7.4
-	github.com/joshdk/go-junit v0.0.0-20200312181801-e5d93c0f31a8
+	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909
 	github.com/lib/pq v1.7.0
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/victorspringer/http-cache v0.0.0-20190721184638-fe78e97af707
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
+	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 	gopkg.in/oleiade/reflections.v1 v1.0.0 // indirect
 )

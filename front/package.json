@@ -1,6 +1,6 @@
 {
-  "name": "TODO",
-  "description": "TODO",
+  "name": "td4_frontend",
+  "description": "frontend for this cool project",
   "version": "0.0.1",
   "scripts": {
     "dev": "sapper dev",

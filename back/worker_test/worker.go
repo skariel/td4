@@ -10,7 +10,8 @@ import (
 	"log"
 	"time"
 
-	"td4/sql/db"
+	"td4/back/db"
+	gdb "td4/back/db/generated"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -103,10 +104,10 @@ func main() {
 func runContainer(
 	ctx context.Context,
 	cli *client.Client,
-	tes *db.GetTestCodeByIDRow,
-	sol *db.Td4SolutionCode,
-	conf *db.Td4RunConfig,
-	q *db.Queries,
+	tes *gdb.GetTestCodeByIDRow,
+	sol *gdb.Td4SolutionCode,
+	conf *gdb.Td4RunConfig,
+	q *gdb.Queries,
 	dbase *sql.DB,
 	runid int32) ([]junit.Suite, error) {
 	const mega = 1024 * 1024
@@ -140,8 +141,6 @@ func runContainer(
 	}()
 
 	go func() {
-		const one = 1 // dont ask...
-
 		id := resp.ID
 
 		time.Sleep(time.Duration(conf.MaxTimeSecs) * time.Second)
@@ -157,14 +156,14 @@ func runContainer(
 			if c.ID == id {
 				log.Printf("timeout! stopping container id=%v and ending run id=%v with status=stop", id, runid)
 
-				err = q.EndRunByID(ctx, db.EndRunByIDParams{
+				err = q.EndRunByID(ctx, gdb.EndRunByIDParams{
 					ID:     runid,
-					Status: db.Td4TypeRunStatusStop})
+					Status: gdb.Td4TypeRunStatusStop})
 				if err != nil {
 					log.Printf("error reporting stop status for long running run: %v", err)
 				}
 
-				to := time.Duration(one) * time.Second
+				to := time.Duration(1) * time.Second
 
 				err = cli.ContainerStop(ctx, id, &to)
 				if err != nil {
@@ -193,7 +192,7 @@ func reportResults(
 	ctx context.Context,
 	cli *client.Client,
 	resp *container.ContainerCreateCreatedBody,
-	q *db.Queries,
+	q *gdb.Queries,
 	dbase *sql.DB,
 	runid int32) ([]junit.Suite, error) {
 	// get test output!
@@ -231,16 +230,16 @@ func reportResults(
 
 	tq := q.WithTx(tx)
 
-	var status db.Td4TypeRunStatus
+	var status gdb.Td4TypeRunStatus
 
 	if (suites[0].Totals.Failed == 0) && (suites[0].Totals.Error == 0) {
-		status = db.Td4TypeRunStatusPass
+		status = gdb.Td4TypeRunStatusPass
 	} else {
-		status = db.Td4TypeRunStatusFail
+		status = gdb.Td4TypeRunStatusFail
 	}
 
 	// checking error at end of transaction
-	_ = tq.EndRunByID(ctx, db.EndRunByIDParams{
+	_ = tq.EndRunByID(ctx, gdb.EndRunByIDParams{
 		ID:     runid,
 		Status: status})
 
@@ -248,15 +247,15 @@ func reportResults(
 		suite := suites[ix]
 		for _, test := range suite.Tests {
 			if test.Error != nil {
-				_, _ = tq.InsertRunResult(ctx, db.InsertRunResultParams{
+				_, _ = tq.InsertRunResult(ctx, gdb.InsertRunResultParams{
 					RunID:  runid,
-					Status: db.Td4TypeRunResultStatusFail,
+					Status: gdb.Td4TypeRunResultStatusFail,
 					Title:  sql.NullString{String: test.Name, Valid: true},
 					Output: sql.NullString{String: test.Error.Error(), Valid: true}})
 			} else {
-				_, _ = tq.InsertRunResult(ctx, db.InsertRunResultParams{
+				_, _ = tq.InsertRunResult(ctx, gdb.InsertRunResultParams{
 					RunID:  runid,
-					Status: db.Td4TypeRunResultStatusPass,
+					Status: gdb.Td4TypeRunResultStatusPass,
 					Title:  sql.NullString{String: test.Name, Valid: true}})
 			}
 		}
@@ -292,9 +291,9 @@ func runRun(
 	ctx context.Context,
 	cli *client.Client,
 	resp *container.ContainerCreateCreatedBody,
-	tes *db.GetTestCodeByIDRow,
-	sol *db.Td4SolutionCode,
-	_ *db.Td4RunConfig) error {
+	tes *gdb.GetTestCodeByIDRow,
+	sol *gdb.Td4SolutionCode,
+	_ *gdb.Td4RunConfig) error {
 	err := copyToDocker(ctx, cli, resp, tes.Code, "test/test.py")
 	if err != nil {
 		return err
@@ -317,9 +316,9 @@ func runRun(
 
 func getCodesAndConf(
 	ctx context.Context,
-	run *db.Td4Run,
-	q *db.Queries,
-) (*db.Td4SolutionCode, *db.GetTestCodeByIDRow, *db.Td4RunConfig, error) {
+	run *gdb.Td4Run,
+	q *gdb.Queries,
+) (*gdb.Td4SolutionCode, *gdb.GetTestCodeByIDRow, *gdb.Td4RunConfig, error) {
 	sol, err := q.RAWGetSolutionCodeByID(ctx, run.SolutionCodeID)
 	if err != nil {
 		return nil, nil, nil, err

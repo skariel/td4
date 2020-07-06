@@ -1,6 +1,10 @@
+# server root:
+
 cloud1
 root@144.202.104.6
 passwd: ****
+
+# server user:
 
 skariel
 skariel@144.202.104.6
@@ -9,10 +13,14 @@ passwd: ****
 adduser skariel
 usermod -aG sudo skariel
 
+# simple server:
+
 simple http:
 mkdir pub
 cd pub
 python3 -m http.server PORT
+
+# firewall, enable port 80:
 
 sudo ufw enable
 sudo ufw allow 80/tcp
@@ -21,10 +29,13 @@ sudo ufw allow ssh
 sudo ufw status
 https://help.ubuntu.com/community/UFW
 
+# env:
+
 sudo apt install zsh
 oh my zsh:
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
+# lets encrypt:
 
 certbot:
 sudo apt-get install certbot
@@ -33,8 +44,7 @@ cert in: /etc/letsencrypt/live/solvemytest.dev/fullchain.pem
 key in: /etc/letsencrypt/live/solvemytest.dev/privkey.pem
 renew: certbot renew
 
-vultr nameservers:
-----------------------
+# vultr nameservers:
 
 (insert in customDNS in namecheap)
 ns1.vultr.com
@@ -55,19 +65,18 @@ ip adresses of github pages:
 CNAME * skariel.github.io
 
 
-github pages
--------------------
+# github pages
 https://github.com/skariel/td4_front
 
 
-psql
----------------
+# psql
 sudo apt install postgresql postgresql-contrib
 sudo -i -u postgres psql
 create database skariel;
 psql -d skariel -f schema.sql
 
 
-run back
---------------
-sudo -E ./back
+# run
+sudo -E ./server_api
+sudo -E ./worker_test
+
