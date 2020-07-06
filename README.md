@@ -78,6 +78,8 @@ npm update --save-dev
 # TODO: a "loading..." message instead of "no tests yet". These are different cases!
 # TODO: test page- when reloaded is all undefined!
 # TODO: remove old, stopped containers periodically
+# TODO: show the "edit test" button only if test can be really editted...
+# TODO: show the "edit solution" button only if solution can be really editted...
 
 
 

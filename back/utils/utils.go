@@ -18,7 +18,7 @@ func DoEvery(d time.Duration, fn func()) {
 
 // LoggedGetEnv logs var name, var val and returns it
 func LoggedGetEnv(varName string) string {
-	varVal := os.Getenv("TD4_CERTIFICATE_FILE_PATH")
+	varVal := os.Getenv(varName)
 	log.Printf("env %v = %v", varName, varVal)
 
 	return varVal
