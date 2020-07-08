@@ -1,12 +1,11 @@
 http conf:
 -----------
-`basepath` in `front/src/routes/utils.js`
+`api_basepath` and `static_basepath` in `front/src/routes/utils.js`
 consts in `back/server_api/serve.go`
 redirect and homepage in github oauth app
 POSTGRES conf in `back/db/dbconn.go`
-env variables: `TD4_*`
 worker conf consts in `back/worker_test/worker.go`
-
+env variables: `TD4_*`:
 export TD4_github_client_id=
 export TD4_github_client_secret=
 export TD4_JWT_SECRET=
@@ -54,7 +53,7 @@ update packages
 go:
 
 in the package root folder:
-go get -u 
+go get -u
 
 upgrade sqlc:
 go get -u github.com/kyleconroy/sqlc/cmd/sqlc
@@ -73,6 +72,7 @@ npm update --save-dev
 # TODO: deletion of solutions
 # TODO: global stats
 # TODO: nicer ui
+# TODO: better date-time
 # TODO: separate static path (in fronetend!)
 # TODO: invalidate cache on new test and make cache TTL longer
 # TODO: a "loading..." message instead of "no tests yet". These are different cases!

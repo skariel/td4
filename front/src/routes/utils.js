@@ -1,7 +1,7 @@
 // TODO: list async fetch
 
-// const basepath = "https://127.0.0.1:8081/"
-const basepath = "https://api.solvemytest.dev/"
+const api_basepath = "https://api.solvemytest.dev/"
+const static_basepath = "https://solvemytest.dev/"
 
 async function myfetch(user, r, method, body) {
     try {
@@ -47,15 +47,15 @@ export async function get(user, r) {
 }
 
 function apipath(p) {
-    return basepath+'api/'+p
+    return api_basepath+'api/'+p
 }
 
 export function loginpath() {
-    return basepath+'auth/github'
+    return api_basepath+'auth/github'
 }
 
 export function staticpath(p) {
-    return basepath+'static/'+p
+    return static_basepath+'/'+p
 }
 
 export function init_location_change_event() {

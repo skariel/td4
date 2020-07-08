@@ -6,6 +6,7 @@ echo "solvemytest.dev" > ./build/CNAME
 cd ../../td4_front
 rm * -rf
 cp -r ../td4/front/build/* .
+cp ../td4/front/static/* .
 git add .
 git commit -am "new build"
 echo "DONE!"

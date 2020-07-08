@@ -1,6 +1,7 @@
 .vscode
 worker_test
 !worker_test/
+out/
 server_api
 !server_api/
 build/
