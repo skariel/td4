@@ -1,0 +1,8 @@
+{
+  "name": "SolveMyTest",
+  "short_name": "SMT",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "cool stuff"
+}

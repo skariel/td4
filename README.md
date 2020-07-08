@@ -73,13 +73,16 @@ npm update --save-dev
 # TODO: global stats
 # TODO: nicer ui
 # TODO: better date-time
-# TODO: separate static path (in fronetend!)
+# TODO: pagination for solutions
 # TODO: invalidate cache on new test and make cache TTL longer
 # TODO: a "loading..." message instead of "no tests yet". These are different cases!
 # TODO: test page- when reloaded is all undefined!
 # TODO: remove old, stopped containers periodically
 # TODO: show the "edit test" button only if test can be really editted...
 # TODO: show the "edit solution" button only if solution can be really editted...
+# TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
+
+
 
 
 

@@ -1,6 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-	import { staticpath, get, getUser, loginpath } from './utils';
+	import { get, getUser, loginpath } from './utils';
 	import TestCard from '../components/TestCard.svelte'
 
 	let tests = [];
@@ -83,8 +83,6 @@
 	<a href="/solution_edit">exporting</a>
 	<a href="/test_edit">exporting</a>
 </div>
-
-<img class="avatar" alt="login with github" src={staticpath("login_with_github.png")} />
 
 <div class="title">
 	{#if tests.length > 0}

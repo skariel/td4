@@ -29,7 +29,8 @@
 	}
 
 	function load_data() {
-        if (window.location.pathname != '/test') {
+		const pname_wo_trailin_slash = window.location.pathname.replace(/\/+$/, '');
+        if (pname_wo_trailin_slash != '/test') {
             return
         }
 		const url = new URL(location)
