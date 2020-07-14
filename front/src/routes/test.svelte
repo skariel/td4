@@ -119,7 +119,9 @@
 	<h3>Title: {test.title}</h3>
 	<p>Description: {test.descr}</p>
 
-	<button on:click={goto("/test_edit?id="+test.id)}>Edit Test</button>
+	{#if user.display_name==test.display_name}
+		<button on:click={goto("/test_edit?id="+test.id)}>Edit Test</button>
+	{/if}
 
 	<pre class="code">
 		<code>

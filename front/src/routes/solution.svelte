@@ -72,7 +72,9 @@
 
 	<h4>status: {solution.status} {#if solution.status=='stop'} (timeout) {/if}</h4>
 
-	<button on:click={goto("/solution_edit?id="+solution.id)}>Edit Code</button>
+	{#if user.display_name==solution.display_name}
+		<button on:click={goto("/solution_edit?id="+solution.id)}>Edit Code</button>
+	{/if}
 
 	<pre class="code">
 		<code>

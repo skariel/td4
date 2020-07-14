@@ -12,10 +12,16 @@ export TD4_JWT_SECRET=
 export TD4_API_PORT=
 export TD4_SOCIAL_AUTH_REDIRECT="https://api.solvemytest.dev/auth/github/callback"
 export TD4_SOCIAL_AUTH_FINAL_DEST=
-export TD4_CORS_ORIGIN=
-export TD4_KEY_FILE_PATH=
-export TD4_CERTIFICATE_FILE_PATH=
+export TD4_CORS_ORIGIN=https://solvemytest.dev
+export TD4_KEY_FILE_PATH=/etc/letsencrypt/live/solvemytest.dev/privkey.pem
+export TD4_CERTIFICATE_FILE_PATH=/etc/letsencrypt/live/solvemytest.dev/fullchain.pem
 
+(key and cert file paths above are the default for lets encrypt cert-bot)
+
+to run local frontend:
+-------------------------
+in the cloud:
+export TD4_CORS_ORIGIN=http://localhost:3000 
 
 Frontend
 -----------
@@ -80,7 +86,9 @@ npm update --save-dev
 # TODO: show the "edit solution" button only if solution can be really editted...
 # TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
 # TODO: front-end cache for fetch (with some TTL, say 5 sec)
-# TODO: show "restore solution code" button only if modified solution!
+# TODO: solution localstorage key per id
+# TODO: test localstorage key per id
+
 
 
 

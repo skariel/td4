@@ -70,9 +70,9 @@
 	<h1>Updating <a href={"/solution?id="+solution.id}>solution {solution.id}</a> for <a href={"/test?id="+solution.test_code_id}>test {solution.test_code_id}</a></h1>
 
 	<h4 style="margin-top:20px;">Code</h4>
-	<button on:click={set_original_code}>restore solution code</button>
 
 	{#if $uscode != solution.code}
+		<button on:click={set_original_code}>restore solution code</button>
 		<h4 style="color:red;">modified!</h4>
 	{/if}
 	<textarea style="width:100%; height:200px" bind:value={$uscode} />
