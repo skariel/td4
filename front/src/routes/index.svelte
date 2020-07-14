@@ -6,6 +6,7 @@
 	let tests = [];
 	let user = {};
 	let page = null;
+	let loading = true;
 
 	onMount(()=>{
 		user = getUser();
@@ -21,6 +22,7 @@
 	})
 
 	function load_data() {
+		loading = true;
         if (window.location.pathname != '/') {
             return
         }
@@ -31,7 +33,7 @@
 		}
 		page = parseInt(page)
 		get(user, 'alltests/'+page*10)
-			.then((r)=>{tests=r.data;})
+			.then((r)=>{tests=r.data; loading = false;})
 	}
 </script>
 
@@ -85,13 +87,17 @@
 </div>
 
 <div class="title">
-	{#if tests.length > 0}
-		<h1>All tests</h1>
+	{#if loading}
+		<h1>Loading...</h1>
 	{:else}
-		{#if page == 0}
-			<h1>No tests yet!</h1>
+		{#if tests.length > 0}
+			<h1>All tests</h1>
 		{:else}
-			<h1>No tests in this page!</h1>
+			{#if page == 0}
+				<h1>No tests yet!</h1>
+			{:else}
+				<h1>No tests in this page!</h1>
+			{/if}
 		{/if}
 	{/if}
 	{#if user['avatar'] != null}

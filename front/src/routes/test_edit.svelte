@@ -6,19 +6,25 @@
 
 	let user = null;
 	let test = [];
-	const utname = writable(localStorage.getItem("utname") || "");
-	utname.subscribe(val => localStorage.setItem("utname", val));
-	const utdescr = writable(localStorage.getItem("utdescr") || "");
-	utdescr.subscribe(val => localStorage.setItem("utdescr", val));
-	const utcode = writable(localStorage.getItem("utcode") || "");
-	utcode.subscribe(val => localStorage.setItem("utcode", val));
+	let loading = true;
+	let utname = null;
+	let utdescr = null;
+	let utcode = null;
 
     onMount(()=>{
+		utname = writable(localStorage.getItem("utname") || "");
+		utname.subscribe(val => localStorage.setItem("utname", val));
+		utdescr = writable(localStorage.getItem("utdescr") || "");
+		utdescr.subscribe(val => localStorage.setItem("utdescr", val));
+		utcode = writable(localStorage.getItem("utcode") || "");
+		utcode.subscribe(val => localStorage.setItem("utcode", val));
+
 		user = getUser();
 		load_data();
     })
 
 	async function load_data(solution_id) {
+		loading = true;
 		const url = new URL(location)
         let test_id = url.searchParams.get("id")
 		let r = await get(user, 'test/'+test_id)
@@ -30,8 +36,9 @@
             set_original_descr();
         }
         if ($utcode == "") {
-            set_original_code();
-        }
+			set_original_code();
+		}
+		loading = false;
 	}
 
 	function set_original_title() {
@@ -98,26 +105,30 @@
 	<title>Updating test {test.id}</title>
 </svelte:head>
 
-<button on:click={set_original_content}>restore original test</button>
+{#if loading}
+	<h1>loading...</h1>
+{:else}
+	<button on:click={set_original_content}>restore original test</button>
 
-{#if $utname != test.title || $utdescr != test.descr || $utcode != test.code }
-	<h4 style="color:red;">modified!</h4>
-{/if}
-
-<h4>Title</h4>
-<input bind:value={$utname}>
-
-<h4 style="margin-top:20px;">Description</h4>
-<textarea style="width:100%; height:200px" bind:value={$utdescr} />
-
-<h4 style="margin-top:20px;">Code</h4>
-<textarea style="width:100%; height:200px" bind:value={$utcode} />
-
-<div>
-	{#if validate($utname, $utdescr, $utcode).length!=0}
-		<h5 style="margin-top:20px; color:red;">{validate($utname, $utdescr, $utcode)}</h5> 
+	{#if $utname != test.title || $utdescr != test.descr || $utcode != test.code }
+		<h4 style="color:red;">modified!</h4>
 	{/if}
-	<button on:click={update_test} disabled={validate($utname, $utdescr, $utcode).length != 0}>
-		update test
-	</button>
-</div>
+
+	<h4>Title</h4>
+	<input bind:value={$utname}>
+
+	<h4 style="margin-top:20px;">Description</h4>
+	<textarea style="width:100%; height:200px" bind:value={$utdescr} />
+
+	<h4 style="margin-top:20px;">Code</h4>
+	<textarea style="width:100%; height:200px" bind:value={$utcode} />
+
+	<div>
+		{#if validate($utname, $utdescr, $utcode).length!=0}
+			<h5 style="margin-top:20px; color:red;">{validate($utname, $utdescr, $utcode)}</h5> 
+		{/if}
+		<button on:click={update_test} disabled={validate($utname, $utdescr, $utcode).length != 0}>
+			update test
+		</button>
+	</div>
+{/if}

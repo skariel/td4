@@ -6,22 +6,27 @@
 
 	let user = null;
     let solution = [];
-	const uscode = writable(localStorage.getItem("uscode") || "");
-	uscode.subscribe(val => localStorage.setItem("uscode", val));
+	let loading = true;
+	let uscode = null;
 
     onMount(()=>{
+		uscode = writable(localStorage.getItem("uscode") || "");
+		uscode.subscribe(val => localStorage.setItem("uscode", val));
+
 		user = getUser();
         load_data();
     })
 
 	async function load_data() {
+		loading = true;
 		const url = new URL(location)
         let solution_id = url.searchParams.get("id")
 		let r = await get(user, 'solution/'+solution_id)
         solution=r.data;
         if ($uscode == "") {
             set_original_code();
-        }
+		}
+		loading = false;
 	}
 
 	function set_original_code() {
@@ -59,21 +64,25 @@
 	<title>Updating solution {solution.test_code_id}</title>
 </svelte:head>
 
-<h1>Updating <a href={"/solution?id="+solution.id}>solution {solution.id}</a> for <a href={"/test?id="+solution.test_code_id}>test {solution.test_code_id}</a></h1>
+{#if loading}
+	<h1>loading...</h1>
+{:else}
+	<h1>Updating <a href={"/solution?id="+solution.id}>solution {solution.id}</a> for <a href={"/test?id="+solution.test_code_id}>test {solution.test_code_id}</a></h1>
 
-<h4 style="margin-top:20px;">Code</h4>
-<button on:click={set_original_code}>restore solution code</button>
+	<h4 style="margin-top:20px;">Code</h4>
+	<button on:click={set_original_code}>restore solution code</button>
 
-{#if $uscode != solution.code}
-	<h4 style="color:red;">modified!</h4>
-{/if}
-<textarea style="width:100%; height:200px" bind:value={$uscode} />
-
-<div>
-	{#if validate($uscode).length > 0}
-		<h5 style="margin-top:20px; color:red;">{validate($uscode)}</h5>
+	{#if $uscode != solution.code}
+		<h4 style="color:red;">modified!</h4>
 	{/if}
-	<button on:click={update_solution} disabled={validate($uscode).length != 0}>
-		update solution
-	</button>
-</div>
+	<textarea style="width:100%; height:200px" bind:value={$uscode} />
+
+	<div>
+		{#if validate($uscode).length > 0}
+			<h5 style="margin-top:20px; color:red;">{validate($uscode)}</h5>
+		{/if}
+		<button on:click={update_solution} disabled={validate($uscode).length != 0}>
+			update solution
+		</button>
+	</div>
+{/if}
