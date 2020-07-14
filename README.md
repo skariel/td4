@@ -15,6 +15,7 @@ export TD4_SOCIAL_AUTH_FINAL_DEST=
 export TD4_CORS_ORIGIN=https://solvemytest.dev
 export TD4_KEY_FILE_PATH=/etc/letsencrypt/live/solvemytest.dev/privkey.pem
 export TD4_CERTIFICATE_FILE_PATH=/etc/letsencrypt/live/solvemytest.dev/fullchain.pem
+export TD4_CACHE_TTL_SECONDS=7
 
 (key and cert file paths above are the default for lets encrypt cert-bot)
 

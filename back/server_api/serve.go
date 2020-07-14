@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/danilopolani/gocialite"
@@ -25,7 +26,6 @@ const (
 	maxDescLen                      = 2048
 	maxCodeLen                      = 8192
 	cacheCapacity                   = 50000
-	cacheTTL                        = 7 * time.Second
 	globalLimiterCleanEvery         = 120 * time.Second
 	globalLimiterWindowSize         = 2 * time.Second
 	globalLimiterMaxRate            = 4.0
@@ -47,6 +47,14 @@ func main() {
 	jwtSecret := []byte(utils.LoggedGetEnv("TD4_JWT_SECRET"))
 	socialAuthFinalDest := utils.LoggedGetEnv("TD4_SOCIAL_AUTH_FINAL_DEST")
 	socialRedirectURL := utils.LoggedGetEnv("TD4_SOCIAL_AUTH_REDIRECT")
+	cacheTTLSeconds, err := strconv.ParseInt(utils.LoggedGetEnv("TD4_CACHE_TTL_SECONDS"), 10, 64)
+
+	if err != nil {
+		log.Fatal("bad TD4_CACHE_TTL_SECONDS env definition. Shoudld be able to transfor to an integer")
+	}
+
+	cacheTTL := time.Duration(cacheTTLSeconds * int64(time.Second))
+	log.Printf("CacheTTL is %v seconds", cacheTTL.Seconds())
 
 	// connect to the DB
 	q, _ := db.ConnectDB()
@@ -115,8 +123,6 @@ func main() {
 			log.Printf("error while cleaning long runs: %v", err)
 		}
 	})
-
-	// TODO: start some cleanup functions (Docker)
 
 	// serve!
 	log.Println("Serving at " + port)

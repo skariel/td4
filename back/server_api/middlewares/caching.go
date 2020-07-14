@@ -21,6 +21,7 @@ func NewMemoryCache(capacity int, ttl time.Duration) *cache.Client {
 	cacheClient, err := cache.NewClient(
 		cache.ClientWithAdapter(memcached),
 		cache.ClientWithTTL(ttl),
+		cache.ClientWithRefreshKey("uncached"),
 	)
 	if err != nil {
 		log.Fatal(err)
