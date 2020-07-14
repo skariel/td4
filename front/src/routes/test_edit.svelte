@@ -11,13 +11,20 @@
 	let utdescr = null;
 	let utcode = null;
 
+	function get_test_id_from_url() {
+		const url = new URL(location)
+		let test_id = url.searchParams.get("id")
+		return test_id;
+	}
+
     onMount(()=>{
-		utname = writable(localStorage.getItem("utname") || "");
-		utname.subscribe(val => localStorage.setItem("utname", val));
-		utdescr = writable(localStorage.getItem("utdescr") || "");
-		utdescr.subscribe(val => localStorage.setItem("utdescr", val));
-		utcode = writable(localStorage.getItem("utcode") || "");
-		utcode.subscribe(val => localStorage.setItem("utcode", val));
+		let test_id = get_test_id_from_url();
+		utname = writable(localStorage.getItem("utname_"+test_id) || "");
+		utname.subscribe(val => localStorage.setItem("utname_"+test_id, val));
+		utdescr = writable(localStorage.getItem("utdescr_"+test_id) || "");
+		utdescr.subscribe(val => localStorage.setItem("utdescr_"+test_id, val));
+		utcode = writable(localStorage.getItem("utcode_"+test_id) || "");
+		utcode.subscribe(val => localStorage.setItem("utcode_"+test_id, val));
 
 		user = getUser();
 		load_data();
@@ -25,9 +32,8 @@
 
 	async function load_data(solution_id) {
 		loading = true;
-		const url = new URL(location)
-        let test_id = url.searchParams.get("id")
-		let r = await get(user, 'test/'+test_id)
+        let test_id = get_test_id_from_url();
+		let r = await get(user, 'test/'+test_id);
         test=r.data;
         if ($utname == "") {
             set_original_title();
@@ -108,9 +114,9 @@
 {#if loading}
 	<h1>loading...</h1>
 {:else}
-	<button on:click={set_original_content}>restore original test</button>
 
 	{#if $utname != test.title || $utdescr != test.descr || $utcode != test.code }
+		<button on:click={set_original_content}>restore original test</button>
 		<h4 style="color:red;">modified!</h4>
 	{/if}
 

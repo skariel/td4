@@ -82,12 +82,8 @@ npm update --save-dev
 # TODO: pagination for solutions
 # TODO: invalidate cache on new test and make cache TTL longer
 # TODO: remove old, stopped containers periodically
-# TODO: show the "edit test" button only if test can be really editted...
-# TODO: show the "edit solution" button only if solution can be really editted...
 # TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
 # TODO: front-end cache for fetch (with some TTL, say 5 sec)
-# TODO: solution localstorage key per id
-# TODO: test localstorage key per id
 
 
 

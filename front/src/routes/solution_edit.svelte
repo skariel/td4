@@ -9,18 +9,24 @@
 	let loading = true;
 	let uscode = null;
 
-    onMount(()=>{
-		uscode = writable(localStorage.getItem("uscode") || "");
-		uscode.subscribe(val => localStorage.setItem("uscode", val));
+	function get_solution_id_from_url() {
+		const url = new URL(location)
+		let solution_id = url.searchParams.get("id")
+		return solution_id;
+	}
+
+	onMount(()=>{
+        let solution_id = get_solution_id_from_url();
+		uscode = writable(localStorage.getItem("uscode"+solution_id) || "");
+		uscode.subscribe(val => localStorage.setItem("uscode"+solution_id, val));
 
 		user = getUser();
         load_data();
-    })
+	})
 
 	async function load_data() {
 		loading = true;
-		const url = new URL(location)
-        let solution_id = url.searchParams.get("id")
+        let solution_id = get_solution_id_from_url();
 		let r = await get(user, 'solution/'+solution_id)
         solution=r.data;
         if ($uscode == "") {
