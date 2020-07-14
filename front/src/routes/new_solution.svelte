@@ -1,5 +1,5 @@
 <script>
-	import { post, getUser } from './utils';
+	import { post, getUser, start_invalidate_cache } from './utils';
 	import { onMount } from 'svelte';
 	import { writable } from "svelte/store";
 	import { goto } from '@sapper/app';
@@ -23,6 +23,7 @@
 			})
 		if (res.status == 200) {
 			scode.set("")
+			start_invalidate_cache()
 			goto('/test?id='+test_id+'&page=0')
 		}
 	}

@@ -1,6 +1,6 @@
 http conf:
 -----------
-`api_basepath` and `static_basepath` in `front/src/routes/utils.js`
+`api_basepath`, `static_basepath`, and `invalidate_cache_ttl_ms` in `front/src/routes/utils.js`
 consts in `back/server_api/serve.go`
 redirect and homepage in github oauth app
 POSTGRES conf in `back/db/dbconn.go`

@@ -2,10 +2,26 @@
 
 const api_basepath = "https://api.solvemytest.dev/"
 const static_basepath = "https://solvemytest.dev/"
+const invalidate_cache_ttl_ms = 5000
+
+let invalidate_cache = false;
+
+export function start_invalidate_cache() {
+    invalidate_cache = true;
+    setTimeout(()=>{invalidate_cache=false;}, invalidate_cache_ttl_ms);
+}
 
 async function myfetch(user, r, method, body) {
     try {
-        const res = await fetch(apipath(r), {
+        let href = apipath(r)
+        if ((invalidate_cache)&&(method=='GET')) {
+            let u = new URL(href);
+            u.searchParams.append('uncached','true');
+            href = u.href;
+            console.log('cache invalidated! '+href)
+        }
+
+        const res = await fetch(href, {
             method: method,
             body: body,
             headers: {
@@ -29,7 +45,8 @@ async function myfetch(user, r, method, body) {
         return {data: data, status: res.status}
     }
     catch (e) {
-        alert(`problem fetching ${apipath(r)}`)
+        console.log(e)
+        alert(`problem fetching ${apipath(r)}. Error logged to console`)
         return {data: [], status:-1}
     }
 }
@@ -41,9 +58,9 @@ export async function post(user, r, o) {
 }
 
 export async function get(user, r) {
-    const method = 'GET'
-    const body = null
-    return myfetch(user, r, method, body)
+    const method = 'GET';
+    const body = null;
+    return myfetch(user, r, method, body);
 }
 
 function apipath(p) {

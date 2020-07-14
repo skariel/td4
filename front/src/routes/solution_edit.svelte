@@ -1,5 +1,5 @@
 <script>
-	import { get, post, getUser } from './utils';
+	import { get, post, getUser, start_invalidate_cache } from './utils';
 	import { onMount } from 'svelte';
 	import { writable } from "svelte/store";
 	import { goto } from '@sapper/app';
@@ -46,6 +46,7 @@
 			})
 		if (res.status == 200) {
 			uscode.set("")
+			start_invalidate_cache()
 			goto('/test?id='+solution.test_code_id+'&page=0')
 		}
 	}

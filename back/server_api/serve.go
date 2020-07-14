@@ -54,7 +54,6 @@ func main() {
 	}
 
 	cacheTTL := time.Duration(cacheTTLSeconds * int64(time.Second))
-	log.Printf("CacheTTL is %v seconds", cacheTTL.Seconds())
 
 	// connect to the DB
 	q, _ := db.ConnectDB()
