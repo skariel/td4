@@ -22,6 +22,7 @@ import (
 // configuration consts
 const (
 	sleepTime       = 5 * time.Second
+	containerTTL    = 1 * time.Minute
 	dockerImageName = "td4:v1"
 )
 
@@ -32,6 +33,8 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	removeOldCOntainers(ctx, cli)
 
 	// connect to the DB
 	q, dbase := db.ConnectDB()
@@ -98,6 +101,31 @@ func main() {
 	}
 }
 
+func removeOldCOntainers(ctx context.Context, cli *client.Client) {
+	log.Printf("searching for contaiuner older than %v hrs", containerTTL.Hours())
+
+	containers, errg := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+	if errg != nil {
+		log.Fatalf("error listing old containers: %v", errg)
+	}
+
+	for ix := range containers {
+		c := containers[ix]
+		dt := time.Since(time.Unix(c.Created, 0))
+
+		if dt > containerTTL {
+			log.Printf("deleting contained id=%v, created %v hrs ago", c.ID, dt.Hours())
+			err := cli.ContainerRemove(ctx, c.ID, types.ContainerRemoveOptions{
+				RemoveVolumes: true,
+				Force:         true})
+
+			if err != nil {
+				log.Fatalf("cannot remove container %v", c.ID)
+			}
+		}
+	}
+}
+
 func runContainer(
 	ctx context.Context,
 	cli *client.Client,
@@ -125,6 +153,7 @@ func runContainer(
 		return nil, err
 	}
 
+	// remove the container at the end of this function (it either completed running or was forcefully stopped)
 	defer func() {
 		log.Print("removing container")
 
@@ -137,6 +166,7 @@ func runContainer(
 		}
 	}()
 
+	// make sure the container doesn't run for too long
 	go func() {
 		id := resp.ID
 
@@ -172,6 +202,7 @@ func runContainer(
 		}
 	}()
 
+	// blocking run of the container
 	err = runRun(ctx, cli, &resp, tes, sol, conf)
 	if err != nil {
 		return nil, err
