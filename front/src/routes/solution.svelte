@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import { get, getUser } from './utils';
+	import { get, del, getUser, start_invalidate_cache } from './utils';
 	import { goto } from '@sapper/app';
 
     let user          = {};
@@ -24,6 +24,15 @@
 		results=r.data;
 		loading = 0;
 	}
+
+	async function delete_solution() {
+		const res = await del(user, 'delete_solution/'+solution.id);
+		if (res.status == 200) {
+			start_invalidate_cache();
+			goto("/test?id="+solution.test_code_id);
+		}
+	}
+
 </script>
 
 <style>
@@ -74,6 +83,7 @@
 
 	{#if user.display_name==solution.display_name}
 		<button on:click={goto("/solution_edit?id="+solution.id)}>Edit Code</button>
+		<button on:click={delete_solution}>Permanently delete solution</button>
 	{/if}
 
 	<pre class="code">

@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '@sapper/app';
 
-	import { get, getUser, loginpath } from './utils';
+	import { get, del, getUser, loginpath, start_invalidate_cache } from './utils';
 	import SolutionCard from '../components/SolutionCard.svelte'
 
 	let user      = {};
@@ -47,6 +47,15 @@
 		get(user, 'solutions_by_test/'+test_id+'/'+page*10)
 			.then((r)=>{solutions=r.data; loading -= 1;})
 	}
+
+	async function delete_test() {
+		const res = await del(user, 'delete_test/'+test.id);
+		if (res.status == 200) {
+			start_invalidate_cache();
+			goto('/')
+		}
+	}
+
 </script>
 
 <style>
@@ -121,6 +130,7 @@
 
 	{#if user.display_name==test.display_name}
 		<button on:click={goto("/test_edit?id="+test.id)}>Edit Test</button>
+		<button on:click={delete_test}>Permanently delete test</button>
 	{/if}
 
 	<pre class="code">

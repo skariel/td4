@@ -350,3 +350,87 @@ func UpdateTestCodeConfigurator(maxTitleLen, maxDescLen, maxCodeLen int) func(ht
 		Rj(w, "")
 	}
 }
+
+// DeleteTestByID self explanatory
+func DeleteTestByID(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r)
+	q := GetQuerierFromContext(r)
+
+	// get test id
+	vars := mux.Vars(r)
+
+	id, err := strconv.ParseInt(vars["id"], 10, 32)
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	// validate user: make sure we even have one :)
+	if user == nil {
+		Forb(w)
+		return
+	}
+
+	// validate user: compare user to solution owner (don't allow anyone else to update)
+	test, err := q.GetTestCodeByID(context.Background(), int32(id))
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	if user.ID != test.CreatedBy {
+		Forb(w)
+		return
+	}
+
+	// delete!
+	err = q.DeleteTestByID(context.Background(), test.ID)
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	Rj(w, "")
+}
+
+// DeleteSolutionByID self explanatory
+func DeleteSolutionByID(w http.ResponseWriter, r *http.Request) {
+	user := GetUserFromContext(r)
+	q := GetQuerierFromContext(r)
+
+	// get solution id
+	vars := mux.Vars(r)
+
+	id, err := strconv.ParseInt(vars["id"], 10, 32)
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	// validate user: make sure we even have one :)
+	if user == nil {
+		Forb(w)
+		return
+	}
+
+	// validate user: compare user to solution owner (don't allow anyone else to update)
+	test, err := q.GetSolutionCodeByID(context.Background(), int32(id))
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	if user.ID != test.CreatedBy {
+		Forb(w)
+		return
+	}
+
+	// delete!
+	err = q.DeleteSolutionByID(context.Background(), test.ID)
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	Rj(w, "")
+}

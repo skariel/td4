@@ -99,6 +99,9 @@ func main() {
 	r.HandleFunc("/api/solution/{id}", handlers.SolutionCodeByID).Methods("GET")
 	r.HandleFunc("/api/results_by_run/{id}", handlers.ResultsByRun).Methods("GET")
 
+	r.HandleFunc("/api/delete_test/{id}", handlers.DeleteTestByID).Methods("DELETE")
+	r.HandleFunc("/api/delete_solution/{id}", handlers.DeleteSolutionByID).Methods("DELETE")
+
 	// apply global middlewares
 	h := http.TimeoutHandler(r, httptimeout, "Timeout!\n")
 	lmt := middlewares.NewLimiter(globalLimiterCleanEvery, globalLimiterWindowSize, globalLimiterMaxRate)

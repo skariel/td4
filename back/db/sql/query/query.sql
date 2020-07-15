@@ -7,6 +7,14 @@ DO UPDATE SET display_name=$2, email=$3, avatar=$4;
 -- name: CleanPendingRunsPerUSer :exec
 DELETE FROM td4.pending_runs_per_user WHERE total = 0;
 
+-- name: DeleteTestByID :exec
+DELETE FROM td4.test_codes
+WHERE id = $1;
+
+-- name: DeleteSolutionByID :exec
+DELETE FROM td4.solution_codes
+WHERE id = $1;
+
 -- name: GetTestCodeByID :one
 SELECT
     t.*,

@@ -265,28 +265,35 @@ AFTER UPDATE ON td4.runs
 FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_update_run();
 END$$;
 
--- automatically update test when a run is removed
+-- automatically update test when a solution is removed
+-- the reason this is not done on the run is due to row visibility
+-- when firing a trigger before / after cascade delete...
+-- solutions should not be deleted anyway. They get deleted with their tests
 
-CREATE FUNCTION td4.trigger_function_delete_run() RETURNS trigger
+CREATE FUNCTION td4.trigger_function_delete_solution() RETURNS trigger
 LANGUAGE plpgsql
-AS $$BEGIN
-    IF OLD.status = 'pending' THEN
+AS $$
+DECLARE
+    old_status td4.type_run_status;
+BEGIN
+    SELECT status INTO old_status FROM td4.runs runs WHERE runs.solution_code_id = OLD.id;
+    IF old_status = 'pending' THEN
         UPDATE td4.test_codes AS test
         SET total_pending = total_pending - 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
-    ELSEIF OLD.status = 'wip' THEN
+        WHERE test.id = OLD.test_code_id;
+    ELSEIF old_status = 'wip' THEN
         UPDATE td4.test_codes AS test
         SET total_wip = total_wip - 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
-    ELSEIF OLD.status = 'pass' THEN
+        WHERE test.id = OLD.test_code_id;
+    ELSEIF old_status = 'pass' THEN
         UPDATE td4.test_codes AS test
         SET total_pass = total_pass - 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
+        WHERE test.id = OLD.test_code_id;
     -- This take care of other "fail" states such as "stop", etc.
-    ELSEIF OLD.status != 'pass' THEN
+    ELSEIF old_status != 'pass' THEN
         UPDATE td4.test_codes AS test
         SET total_fail = total_fail - 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = OLD.solution_code_id);
+        WHERE test.id = OLD.test_code_id;
     END IF;
 
     RETURN OLD;
@@ -294,9 +301,9 @@ END$$;
 
 DO LANGUAGE plpgsql
 $$BEGIN
-CREATE TRIGGER trigger_delete_run
-BEFORE DELETE ON td4.runs
-FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_delete_run();
+CREATE TRIGGER trigger_delete_solution
+BEFORE DELETE ON td4.solution_codes
+FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_delete_solution();
 END$$;
 
 -- automatic updating `ts_updated` columns

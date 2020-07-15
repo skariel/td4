@@ -63,6 +63,12 @@ export async function get(user, r) {
     return myfetch(user, r, method, body);
 }
 
+export async function del(user, r) {
+    const method = 'DELETE';
+    const body = null;
+    return myfetch(user, r, method, body);
+}
+
 function apipath(p) {
     return api_basepath+'api/'+p
 }
