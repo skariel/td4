@@ -38,9 +38,14 @@ ORDER BY t.ts_updated DESC
 LIMIT 10 OFFSET $1;
 
 -- name: GetTestCodesByUser :many
-SELECT *
+SELECT
+    t.*,
+    u.display_name,
+    u.avatar
 FROM td4.test_codes t
-WHERE created_by = $1
+JOIN td4.users u
+ON t.created_by = u.id
+WHERE t.created_by = $1 OR EXISTS (SELECT * FROM td4.solution_codes s WHERE s.created_by = $1)
 ORDER BY t.ts_updated DESC
 LIMIT 10 OFFSET $2;
 

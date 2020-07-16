@@ -11,6 +11,7 @@ import (
 	db "td4/back/db/generated"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 )
 
 // CreateSolutionCodeConfigurator returns a configured CreateSolutionCode handler
@@ -146,6 +147,37 @@ func AllTests(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tests, err := q.GetTestCodes(context.Background(), int32(offset))
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	Rj(w, tests)
+}
+
+// AllTestsByUser give all tests, plus avatar user, etc. all for a specific user
+func AllTestsByUser(w http.ResponseWriter, r *http.Request) {
+	q := GetQuerierFromContext(r)
+
+	vars := mux.Vars(r)
+
+	offset, err := strconv.ParseInt(vars["offset"], 10, 32)
+	if err != nil {
+		Ise(w, err)
+		return
+	}
+
+	displayName, ok := vars["displayname"]
+	if !ok {
+		Ise(w, errors.New("displayname parameter expected but not present"))
+		return
+	}
+
+	tests, err := q.GetTestCodesByUser(context.Background(),
+		db.GetTestCodesByUserParams{
+			Offset:    int32(offset),
+			CreatedBy: displayName,
+		})
 	if err != nil {
 		Ise(w, err)
 		return

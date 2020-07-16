@@ -75,16 +75,15 @@ npm update --save-dev
 # TODO: mytests
 # TODO: mysolutions
 # TODO: content in "about" page
-# TODO: global stats
 # TODO: nicer ui
 # TODO: better date-time
 # TODO: pagination for solutions
-# TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
-# TODO: front-end cache for fetch (with some TTL, say 5 sec)
 # TODO: feedback on actions status ("test was added, press x to close" etc.)
 
+For later:
 
-
+# TODO: global stats
+# TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
 
 
 

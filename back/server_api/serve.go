@@ -25,7 +25,7 @@ const (
 	maxTitleLen                     = 256
 	maxDescLen                      = 2048
 	maxCodeLen                      = 8192
-	cacheCapacity                   = 50000
+	cacheCapacity                   = 100000
 	globalLimiterCleanEvery         = 120 * time.Second
 	globalLimiterWindowSize         = 2 * time.Second
 	globalLimiterMaxRate            = 4.0
@@ -95,6 +95,7 @@ func main() {
 
 	r.HandleFunc("/api/test/{id}", handlers.GetTestByID).Methods("GET")
 	r.HandleFunc("/api/alltests/{offset}", handlers.AllTests).Methods("GET")
+	r.HandleFunc("/api/alltests_by_user/{offset}/{displayname}", handlers.AllTestsByUser).Methods("GET")
 	r.HandleFunc("/api/solutions_by_test/{id}/{offset}", handlers.SolutionCodesByTest).Methods("GET")
 	r.HandleFunc("/api/solution/{id}", handlers.SolutionCodeByID).Methods("GET")
 	r.HandleFunc("/api/results_by_run/{id}", handlers.ResultsByRun).Methods("GET")

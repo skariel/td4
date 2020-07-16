@@ -7,8 +7,19 @@
 	let user = {};
 	let page = null;
 	let loading = true;
+	let should_show_my_tests = false;
+
+
+	function set_should_show_my_tests(should) {
+		should_show_my_tests = false;
+		localStorage.setItem("should_show_my_tests", val);
+	}
 
 	onMount(()=>{
+		should_show_my_tests = localStorage.getItem("should_show_my_tests");
+		if (should_show_my_tests == null) {
+			set_should_show_my_tests(false);
+		}
 		user = getUser();
 		window.addEventListener("locationchange", load_data);
 		load_data()
@@ -32,7 +43,14 @@
 			page = "0";
 		}
 		page = parseInt(page)
-		get(user, 'alltests/'+page*10)
+		var href;
+		if (should_show_my_tests) {
+			href = 'alltests_by_user/'+page*10+'/'+user.display_name;
+		}
+		else {
+			href = 'alltests/'+page*10;
+		}
+		get(user, href)
 			.then((r)=>{tests=r.data; loading = false;})
 	}
 </script>
@@ -90,22 +108,31 @@
 	{#if loading}
 		<h1>Loading...</h1>
 	{:else}
-		{#if tests.length > 0}
-			<h1>All tests</h1>
+		{#if should_show_my_tests}
+			<h1>Showing my tests</h1>
 		{:else}
-			{#if page == 0}
-				<h1>No tests yet!</h1>
-			{:else}
-				<h1>No tests in this page!</h1>
-			{/if}
+			<h1>Showing all tests</h1>
 		{/if}
 	{/if}
 	{#if user['avatar'] != null}
-		<a href="/new_test">Add Test</a>
+		{#if should_show_my_tests}
+			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{should_show_my_tests = false; load_data();}}>all tests</a>
+		{:else}
+			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{should_show_my_tests = true; load_data();}}>my tests</a>
+		{/if}
+		<a style="margin-right?:15px; margin-left:15px;" href="/new_test">Add Test</a>
 	{:else}
 		<a href={loginpath()}>Login to add a test</a>
 	{/if}
 </div>
+
+{#if tests.length == 0}
+	{#if page == 0}
+		<h2>None yet!</h2>
+	{:else}
+		<h2>None on this page!</h2>
+	{/if}
+{/if}
 
 <div class="tests">
 	{#each tests as t }

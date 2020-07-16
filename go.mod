@@ -13,7 +13,7 @@ require (
 	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909
 	github.com/lib/pq v1.7.0
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/victorspringer/http-cache v0.0.0-20190721184638-fe78e97af707
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	gopkg.in/oleiade/reflections.v1 v1.0.0 // indirect
