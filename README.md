@@ -85,5 +85,9 @@ For later:
 # TODO: global stats
 # TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
 
+Bugs:
+
+1) "my tests" shows no tests!
+2) when refreshing / reloading during "show all tests" it goes back to "my tests" even trhough show_my_tets = false???
 
 

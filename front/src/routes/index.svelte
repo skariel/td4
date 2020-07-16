@@ -9,7 +9,6 @@
 	let loading = true;
 	let should_show_my_tests = false;
 
-
 	function set_should_show_my_tests(should) {
 		tests = []
 		should_show_my_tests = should;
