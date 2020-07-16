@@ -82,6 +82,8 @@ npm update --save-dev
 # TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
 # TODO: front-end cache for fetch (with some TTL, say 5 sec)
 # TODO: feedback on actions status ("test was added, press x to close" etc.)
+# TODO: consolidate "run" and "solution_code"
+
 
 
 
