@@ -11,12 +11,14 @@
 
 
 	function set_should_show_my_tests(should) {
-		should_show_my_tests = false;
-		localStorage.setItem("should_show_my_tests", val);
+		tests = []
+		should_show_my_tests = should;
+		localStorage.setItem("should_show_my_tests", should);
 	}
 
 	onMount(()=>{
 		should_show_my_tests = localStorage.getItem("should_show_my_tests");
+		console.log(should_show_my_tests);
 		if (should_show_my_tests == null) {
 			set_should_show_my_tests(false);
 		}
@@ -105,20 +107,16 @@
 </div>
 
 <div class="title">
-	{#if loading}
-		<h1>Loading...</h1>
+	{#if should_show_my_tests}
+		<h1>Showing my tests</h1>
 	{:else}
-		{#if should_show_my_tests}
-			<h1>Showing my tests</h1>
-		{:else}
-			<h1>Showing all tests</h1>
-		{/if}
+		<h1>Showing all tests</h1>
 	{/if}
 	{#if user['avatar'] != null}
 		{#if should_show_my_tests}
-			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{should_show_my_tests = false; load_data();}}>all tests</a>
+			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{set_should_show_my_tests(false); load_data();}}>all tests</a>
 		{:else}
-			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{should_show_my_tests = true; load_data();}}>my tests</a>
+			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{set_should_show_my_tests(true); load_data();}}>my tests</a>
 		{/if}
 		<a style="margin-right?:15px; margin-left:15px;" href="/new_test">Add Test</a>
 	{:else}
@@ -126,11 +124,15 @@
 	{/if}
 </div>
 
-{#if tests.length == 0}
-	{#if page == 0}
-		<h2>None yet!</h2>
-	{:else}
-		<h2>None on this page!</h2>
+{#if loading}
+	<h2>Loading...</h2>
+{:else}
+	{#if tests.length == 0}
+		{#if page == 0}
+			<h2>None yet!</h2>
+		{:else}
+			<h2>None on this page!</h2>
+		{/if}
 	{/if}
 {/if}
 
