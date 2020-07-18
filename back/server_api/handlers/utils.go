@@ -46,7 +46,7 @@ func Forb(w http.ResponseWriter) {
 func Limited(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusTooManyRequests)
-	fmt.Fprint(w, "too many requests")
+	fmt.Fprint(w, "you have hit the request rate limit. Please try again later")
 }
 
 // ExpectationFailure expected something else

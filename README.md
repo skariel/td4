@@ -75,17 +75,19 @@ npm update --save-dev
 # TODO: content in "about" page
 # TODO: nicer ui
 # TODO: better date-time
-# TODO: pagination for solutions
-# TODO: feedback on actions status ("test was added, press x to close" etc.)
+# TODO: make sure it looks good on mobile
+# TODO: test on Chrome
 
 For later:
 
-# TODO: global stats
+# TODO: feedback on actions status ("test was added, press x to close" etc.)
+# TODO: syntax highlighting
+# TODO: add different languages (go, node (js, ts), etc.)
+# TODO: global stats (total # tests pending, running, passing, failing, ETA for running a test etc.)
 # TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
 
 Bugs:
 
-1) "my tests" shows no tests!
-2) when refreshing / reloading during "show all tests" it goes back to "my tests" even trhough show_my_tets = false???
+-?
 
 
