@@ -78,6 +78,8 @@ CREATE TABLE td4.runs (
 
     ts_start timestamptz,
     ts_end timestamptz,
+    -- test_code_id is needed because of row visibility during cascading. Otherwise could just discover it through solution_code_id
+    test_code_id integer NOT NULL REFERENCES td4.test_codes(id) ON DELETE CASCADE,
     solution_code_id integer NOT NULL REFERENCES td4.solution_codes(id) ON DELETE CASCADE,
     run_config text NOT NULL REFERENCES td4.run_configs(display_name) ON DELETE CASCADE,
     status td4.type_run_status NOT NULL default 'pending'::td4.type_run_status NOT NULL,
@@ -139,8 +141,8 @@ AS $$BEGIN
         WHERE solution_code_id = updated_solution_id
         RETURNING *
     )
-	INSERT INTO td4.runs(created_by, updated_by, solution_code_id, run_config)
-	SELECT r.created_by, r.updated_by, updated_solution_id, 'default' FROM r;
+	INSERT INTO td4.runs(created_by, updated_by, test_code_id, solution_code_id, run_config)
+	SELECT r.created_by, r.updated_by, r.test_code_id, updated_solution_id, 'default' FROM r;
 
     RETURN 'ok';
 END$$;
@@ -178,8 +180,8 @@ END$$;
 CREATE FUNCTION td4.trigger_function_insert_solution() RETURNS trigger
 LANGUAGE plpgsql
 AS $$BEGIN
-    INSERT INTO td4.runs(created_by, updated_by, solution_code_id, run_config)
-    VALUES (NEW.created_by, NEW.updated_by, NEW.id, 'default');
+    INSERT INTO td4.runs(created_by, updated_by, test_code_id, solution_code_id, run_config)
+    VALUES (NEW.created_by, NEW.updated_by, NEW.test_code_id, NEW.id, 'default');
     RETURN NEW;
 END$$;
 
@@ -222,7 +224,7 @@ AS $$BEGIN
 
     UPDATE td4.test_codes AS test
     SET total_pending = total_pending + 1
-    WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+    WHERE test.id = NEW.test_code_id;
 
     RETURN NEW;
 END$$;
@@ -243,17 +245,17 @@ AS $$BEGIN
         -- pending -> wip
         UPDATE td4.test_codes AS test
         SET total_pending = total_pending - 1, total_wip = total_wip + 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+        WHERE test.id = NEW.test_code_id;
     ELSEIF OLD.status = 'wip' AND NEW.status != 'pass' THEN
         -- wip -> fail
         UPDATE td4.test_codes AS test
         SET total_wip = total_wip - 1, total_fail = total_fail + 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+        WHERE test.id = NEW.test_code_id;
     ELSEIF OLD.status = 'wip' AND NEW.status = 'pass' THEN
         -- wip -> pass
         UPDATE td4.test_codes AS test
         SET total_wip = total_wip - 1, total_pass = total_pass + 1
-        WHERE test.id = (SELECT test_code_id FROM td4.solution_codes WHERE id = NEW.solution_code_id);
+        WHERE test.id = NEW.test_code_id;
 	END IF;
     RETURN NEW;
 END$$;
@@ -265,32 +267,28 @@ AFTER UPDATE ON td4.runs
 FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_update_run();
 END$$;
 
--- automatically update test when a solution is removed
--- the reason this is not done on the run is due to row visibility
--- when firing a trigger before / after cascade delete...
--- solutions should not be deleted anyway. They get deleted with their tests
+-- automatically update test and pending tasks per user when a run is removed
 
-CREATE FUNCTION td4.trigger_function_delete_solution() RETURNS trigger
+CREATE FUNCTION td4.trigger_function_delete_run() RETURNS trigger
 LANGUAGE plpgsql
-AS $$
-DECLARE
-    old_status td4.type_run_status;
-BEGIN
-    SELECT status INTO old_status FROM td4.runs runs WHERE runs.solution_code_id = OLD.id;
-    IF old_status = 'pending' THEN
+AS $$BEGIN
+    IF OLD.status = 'pending' THEN
         UPDATE td4.test_codes AS test
         SET total_pending = total_pending - 1
         WHERE test.id = OLD.test_code_id;
-    ELSEIF old_status = 'wip' THEN
+        UPDATE td4.pending_runs_per_user AS pending
+        SET pending.total = pending.total - 1
+        WHERE pending.user_id = OLD.created_by;
+    ELSEIF OLD.status = 'wip' THEN
         UPDATE td4.test_codes AS test
         SET total_wip = total_wip - 1
         WHERE test.id = OLD.test_code_id;
-    ELSEIF old_status = 'pass' THEN
+    ELSEIF OLD.status = 'pass' THEN
         UPDATE td4.test_codes AS test
         SET total_pass = total_pass - 1
         WHERE test.id = OLD.test_code_id;
     -- This take care of other "fail" states such as "stop", etc.
-    ELSEIF old_status != 'pass' THEN
+    ELSEIF OLD.status != 'pass' THEN
         UPDATE td4.test_codes AS test
         SET total_fail = total_fail - 1
         WHERE test.id = OLD.test_code_id;
@@ -301,9 +299,9 @@ END$$;
 
 DO LANGUAGE plpgsql
 $$BEGIN
-CREATE TRIGGER trigger_delete_solution
-BEFORE DELETE ON td4.solution_codes
-FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_delete_solution();
+CREATE TRIGGER trigger_delete_run
+BEFORE DELETE ON td4.runs
+FOR EACH ROW EXECUTE FUNCTION td4.trigger_function_delete_run();
 END$$;
 
 -- automatic updating `ts_updated` columns
