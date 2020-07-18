@@ -276,9 +276,9 @@ AS $$BEGIN
         UPDATE td4.test_codes AS test
         SET total_pending = total_pending - 1
         WHERE test.id = OLD.test_code_id;
-        UPDATE td4.pending_runs_per_user AS pending
-        SET pending.total = pending.total - 1
-        WHERE pending.user_id = OLD.created_by;
+        UPDATE td4.pending_runs_per_user
+        SET total = total - 1
+        WHERE user_id = OLD.created_by;
     ELSEIF OLD.status = 'wip' THEN
         UPDATE td4.test_codes AS test
         SET total_wip = total_wip - 1

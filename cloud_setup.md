@@ -74,7 +74,11 @@ sudo apt install postgresql postgresql-contrib
 sudo -i -u postgres psql
 create database skariel;
 psql -d skariel -f schema.sql
+or...
+sudo -i -u postgres psql -d skariel -f /home/skariel/td4/schema.sql
 
+restart:
+sudo /etc/init.d/postgresql restart
 
 # run
 sudo -E ./server_api
