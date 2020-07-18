@@ -72,8 +72,6 @@ npm update --save
 npm update --save-dev
 
 
-# TODO: mytests
-# TODO: mysolutions
 # TODO: content in "about" page
 # TODO: nicer ui
 # TODO: better date-time
