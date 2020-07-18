@@ -1,3 +1,4 @@
+
 -- name: UpsertUser :exec
 INSERT INTO td4.users(id, display_name, email, avatar)
 VALUES ($1, $2, $3, $4)
@@ -45,7 +46,7 @@ SELECT
 FROM td4.test_codes t
 JOIN td4.users u
 ON t.created_by = u.id
-WHERE t.created_by = $1 OR EXISTS (SELECT * FROM td4.solution_codes s WHERE s.created_by = $1)
+WHERE t.created_by = (SELECT id FROM td4.users u WHERE u.display_name = $1) OR EXISTS (SELECT * FROM td4.solution_codes s WHERE s.created_by = $1)
 ORDER BY t.ts_updated DESC
 LIMIT 10 OFFSET $2;
 

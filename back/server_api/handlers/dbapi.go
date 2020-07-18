@@ -175,8 +175,8 @@ func AllTestsByUser(w http.ResponseWriter, r *http.Request) {
 
 	tests, err := q.GetTestCodesByUser(context.Background(),
 		db.GetTestCodesByUserParams{
-			Offset:    int32(offset),
-			CreatedBy: displayName,
+			Offset:      int32(offset),
+			DisplayName: displayName,
 		})
 	if err != nil {
 		Ise(w, err)

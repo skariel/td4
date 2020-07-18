@@ -7,20 +7,9 @@
 	let user = {};
 	let page = null;
 	let loading = true;
-	let should_show_my_tests = false;
-
-	function set_should_show_my_tests(should) {
-		tests = []
-		should_show_my_tests = should;
-		localStorage.setItem("should_show_my_tests", should);
-	}
+	let user_filter = null;
 
 	onMount(()=>{
-		should_show_my_tests = localStorage.getItem("should_show_my_tests");
-		console.log(should_show_my_tests);
-		if (should_show_my_tests == null) {
-			set_should_show_my_tests(false);
-		}
 		user = getUser();
 		window.addEventListener("locationchange", load_data);
 		load_data()
@@ -45,11 +34,12 @@
 		}
 		page = parseInt(page)
 		var href;
-		if (should_show_my_tests) {
-			href = 'alltests_by_user/'+page*10+'/'+user.display_name;
+		user_filter = url.searchParams.get("user")
+		if (user_filter==null) {
+			href = 'alltests/'+page*10;
 		}
 		else {
-			href = 'alltests/'+page*10;
+			href = 'alltests_by_user/'+page*10+'/'+user_filter;
 		}
 		get(user, href)
 			.then((r)=>{tests=r.data; loading = false;})
@@ -106,16 +96,16 @@
 </div>
 
 <div class="title">
-	{#if should_show_my_tests}
-		<h1>Showing my tests</h1>
-	{:else}
+	{#if user_filter == null}
 		<h1>Showing all tests</h1>
+	{:else}
+		<h1>Showing tests for {user_filter}</h1>
 	{/if}
 	{#if user['avatar'] != null}
-		{#if should_show_my_tests}
-			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{set_should_show_my_tests(false); load_data();}}>all tests</a>
+		{#if user_filter != null}
+			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{load_data();}}>all tests</a>
 		{:else}
-			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{set_should_show_my_tests(true); load_data();}}>my tests</a>
+			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0&user={user.display_name}" on:click={()=>{set_should_show_my_tests(true); load_data();}}>my tests</a>
 		{/if}
 		<a style="margin-right?:15px; margin-left:15px;" href="/new_test">Add Test</a>
 	{:else}
