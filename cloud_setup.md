@@ -80,3 +80,13 @@ psql -d skariel -f schema.sql
 sudo -E ./server_api
 sudo -E ./worker_test
 
+# psql logs!
+foo=# select pg_backend_pid() ;
+ pg_backend_pid 
+----------------
+          YOUR_PID_HERE
+(1 row)
+
+then:
+
+sudo cat /proc/YOUR_PID_HERE/fd/2
