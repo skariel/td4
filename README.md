@@ -88,8 +88,7 @@ For later:
 
 Bugs:
 
-# BUG: when updating test code: not all new runs get added to td4.pending_runs_per_user_table
-# BUG: rate limiting for new solutions used to work, but apparently not anymore...
+# BUG: rate limiting (e.g. for new solutions) works after restart of computer, but not after restart of server??!
 
 
 
