@@ -108,6 +108,9 @@
 		justify-content: center;
 		margin-top: 20px;
 	}
+    .filler {
+        width: 20px;
+    }
 
 
 </style>

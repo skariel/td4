@@ -2,6 +2,7 @@
 package middlewares
 
 import (
+	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -24,11 +25,7 @@ func (e *entry) slide(windowSize time.Duration) {
 		e.prevTime = now.Truncate(windowSize).Add(-windowSize)
 		e.prevCount = 0.0
 		e.currCount = 0.0
-
-		return
-	}
-
-	if dt > windowSize*2 {
+	} else if dt > windowSize*2 {
 		e.prevTime = e.prevTime.Add(windowSize)
 		e.prevCount = e.currCount
 		e.currCount = 0.0
@@ -125,6 +122,8 @@ func (l *Limiter) Middleware(next func(http.ResponseWriter, *http.Request)) func
 		}
 
 		rate := l.incGetRate(ip)
+		log.Printf("\n\nrate = %v\n\n", rate)
+
 		if rate > l.maxRate {
 			handlers.Limited(w)
 			return

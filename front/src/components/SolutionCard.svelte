@@ -33,10 +33,6 @@
         margin-right:20px;
     }
 
-    .displayname {
-
-    }
-
     .topbar {
         grid-column: 1 / 5;
         grid-row: 1;

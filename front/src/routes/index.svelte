@@ -105,7 +105,7 @@
 		{#if user_filter != null}
 			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{load_data();}}>all tests</a>
 		{:else}
-			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0&user={user.display_name}" on:click={()=>{set_should_show_my_tests(true); load_data();}}>my tests</a>
+			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0&user={user.display_name}">my tests</a>
 		{/if}
 		<a style="margin-right?:15px; margin-left:15px;" href="/new_test">Add Test</a>
 	{:else}
