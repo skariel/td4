@@ -37,10 +37,9 @@ func (e *entry) currRatePerWindow(windowSize time.Duration) float64 {
 
 	now := time.Now()
 	tt := now.Truncate(windowSize)
-	fc := now.Sub(tt).Hours() / windowSize.Hours()
-	fp := tt.Sub(now.Add(-windowSize)).Hours() / windowSize.Hours()
+	fc := (1.0 + float64(now.Sub(tt))) / float64(windowSize)
 
-	return fp*e.prevCount + fc*e.currCount
+	return e.currCount + (1.0-fc)*e.prevCount
 }
 
 // Limiter sliding window request limiter based on ip
