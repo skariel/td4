@@ -9,6 +9,7 @@ require (
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4
 	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909
 	github.com/lib/pq v1.7.0
