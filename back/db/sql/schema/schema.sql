@@ -220,7 +220,7 @@ AS $$BEGIN
     VALUES (NEW.created_by)
     ON CONFLICT (user_id)
     DO UPDATE
-    SET user_id = NEW.created_by, total = EXCLUDED.total + 1;
+    SET total = td4.pending_runs_per_user.total + 1;
 
     UPDATE td4.test_codes AS test
     SET total_pending = total_pending + 1
