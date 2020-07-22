@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"os"
 	"time"
 
 	"td4/back/db"
@@ -39,7 +40,7 @@ func main() {
 	// connect to the DB
 	q, dbase := db.ConnectDB()
 
-	log.Println("Connected to DB")
+	log.Printf("Worker %v Connected to DB. Starting main loop\n", os.Getpid())
 
 	// main work loop: get run, run, report, repeat!
 	shouldSleep := false

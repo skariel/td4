@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -128,6 +129,6 @@ func main() {
 	})
 
 	// serve!
-	log.Println("Serving at " + port)
+	log.Printf("Process %v Serving at port %v\n", os.Getpid(), port)
 	log.Fatal(http.ListenAndServeTLS(port, certificateFilePath, keyFilePath, h))
 }
