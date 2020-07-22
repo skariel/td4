@@ -2,7 +2,6 @@
 package middlewares
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -121,7 +120,6 @@ func (l *Limiter) Middleware(next func(http.ResponseWriter, *http.Request)) func
 		}
 
 		rate := l.incGetRate(ip)
-		log.Printf("\n\nrate = %v\n\n", rate)
 
 		if rate > l.maxRate {
 			handlers.Limited(w)

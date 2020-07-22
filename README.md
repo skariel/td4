@@ -88,7 +88,6 @@ For later:
 
 Bugs:
 
-# BUG: rate limiting (e.g. for new solutions) works after restart of computer, but not after restart of server??!
-
+none! ha!
 
 
