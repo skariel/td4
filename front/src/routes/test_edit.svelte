@@ -19,9 +19,9 @@
 
     onMount(()=>{
 		let test_id = get_test_id_from_url();
-		utname = "";
-		utdescr = "";
-		utcode = "";
+		utname = writable("");
+		utdescr = writable("");
+		utcode = writable("");
 
 		// utname = writable(localStorage.getItem("utname_"+test_id) || "");
 		// utname.subscribe(val => localStorage.setItem("utname_"+test_id, val));
