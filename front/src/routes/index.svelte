@@ -93,6 +93,7 @@
 	<a href="/new_test">exporting</a>
 	<a href="/solution_edit">exporting</a>
 	<a href="/test_edit">exporting</a>
+	<a href="/debug">exporting</a>
 </div>
 
 <div class="title">

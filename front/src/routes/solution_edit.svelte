@@ -16,9 +16,10 @@
 	}
 
 	onMount(()=>{
-        let solution_id = get_solution_id_from_url();
-		uscode = writable(localStorage.getItem("uscode"+solution_id) || "");
-		uscode.subscribe(val => localStorage.setItem("uscode"+solution_id, val));
+		let solution_id = get_solution_id_from_url();
+		uscode = "";
+		// uscode = writable(localStorage.getItem("uscode"+solution_id) || "");
+		// uscode.subscribe(val => localStorage.setItem("uscode"+solution_id, val));
 
 		user = getUser();
         load_data();

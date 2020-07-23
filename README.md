@@ -88,6 +88,7 @@ For later:
 
 Bugs:
 
-none! ha!
+# BUG: android FF, localstorage causing problems (in test_edit, solution_edit). Currently disabled
+
 
 

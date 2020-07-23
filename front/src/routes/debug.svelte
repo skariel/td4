@@ -14,21 +14,23 @@
 	function get_test_id_from_url() {
 		const url = new URL(location)
 		let test_id = url.searchParams.get("id")
-		return test_id;
+		return 1;
 	}
 
     onMount(()=>{
-		let test_id = get_test_id_from_url();
-		utnamne = "";
-		utdescr = "";
-		utcode = "";
+        let test_id = get_test_id_from_url();
+        if (!window.localStorage) {
+            alert("your browser does not support localStorage!")
+        }
+        window.localStorage.setItem("utname_", "123");
+        let tst = window.localStorage.getItem("utname_");
 
-		// utname = writable(localStorage.getItem("utname_"+test_id) || "");
-		// utname.subscribe(val => localStorage.setItem("utname_"+test_id, val));
-		// utdescr = writable(localStorage.getItem("utdescr_"+test_id) || "");
-		// utdescr.subscribe(val => localStorage.setItem("utdescr_"+test_id, val));
-		// utcode = writable(localStorage.getItem("utcode_"+test_id) || "");
-		// utcode.subscribe(val => localStorage.setItem("utcode_"+test_id, val));
+		utname = writable("");
+		utname.subscribe(val => console.log(val));
+		utdescr = writable("");
+		utdescr.subscribe(val => console.log(val));
+		utcode = writable("");
+		utcode.subscribe(val => console.log(val));
 
 		user = getUser();
 		load_data();
