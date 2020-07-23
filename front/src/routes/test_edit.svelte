@@ -19,7 +19,7 @@
 
     onMount(()=>{
 		let test_id = get_test_id_from_url();
-		utnamne = "";
+		utname = "";
 		utdescr = "";
 		utcode = "";
 
