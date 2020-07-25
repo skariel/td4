@@ -16,7 +16,6 @@ async function myfetch(user, r, method, body) {
             let u = new URL(href);
             u.searchParams.append('uncached','true');
             href = u.href;
-            console.log('cache invalidated! '+href)
         }
 
         const res = await fetch(href, {
@@ -131,18 +130,20 @@ export function getUser() {
 
 export function timeSince(date) {
     const intervals = [
-        { label: 'year', seconds: 31536000 },
-        { label: 'month', seconds: 2592000 },
-        { label: 'day', seconds: 86400 },
-        { label: 'hour', seconds: 3600 },
-        { label: 'minute', seconds: 60 },
+        { label: 'year', seconds: 31536000-1 },
+        { label: 'month', seconds: 2592000-1 },
+        { label: 'day', seconds: 86400-1 },
+        { label: 'hour', seconds: 3600-1 },
+        { label: 'minute', seconds: 60-1 },
         { label: 'second', seconds: 0 }
     ];
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (seconds==0) {
+    const interval = intervals.find(i => i.seconds < seconds);
+    if (interval==null) {
         return "just now";
     }
-    const interval = intervals.find(i => i.seconds < seconds);
-    const count = Math.floor(seconds / interval.seconds);
+    console.log(interval);
+    console.log(interval)
+    const count = Math.floor(seconds / (interval.seconds+1));
     return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;
 }
