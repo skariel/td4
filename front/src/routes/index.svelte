@@ -53,17 +53,10 @@
 		column-gap: 1em;
 	}
 
-	@media (max-width:650px) {
-	.tests {
- 		column-count: 1;
-		column-gap: 1em;
-	}
-
-	}
-
 	.title {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 	}
 
 	.title a {
@@ -86,6 +79,23 @@
         width: 20px;
     }
 
+	@media (max-width:650px) {
+		.break {
+			flex-basis: 100%;
+			height: 0%;
+		}
+
+		.tests {
+			column-count: 1;
+			column-gap: 1em;
+		}
+
+		.title a {
+			margin-left: 0px;
+		}
+
+	}
+
 </style>
 
 <svelte:head>
@@ -100,7 +110,6 @@
 	<a href="/new_test">exporting</a>
 	<a href="/solution_edit">exporting</a>
 	<a href="/test_edit">exporting</a>
-	<a href="/debug">exporting</a>
 </div>
 
 <div class="title">
@@ -109,23 +118,22 @@
 	{:else}
 		<h1>Showing tests for {user_filter}</h1>
 	{/if}
+	<div class="break"/>
 	{#if user['avatar'] != null}
 		{#if user_filter != null}
-			<a style="margin-right?:15px; margin-left:auto;"
-			   href="/?page=0"
+			<a href="/?page=0"
 			   on:click={()=>{tests=[]}}
 			>
 				all tests
 			</a>
 		{:else}
-			<a style="margin-right?:15px; margin-left:auto;"
-			   href="/?page=0&user={user.display_name}"
+			<a href="/?page=0&user={user.display_name}"
 			   on:click={()=>{tests=[]}}
 			>
 			   my tests
 			</a>
 		{/if}
-		<a style="margin-right?:15px; margin-left:15px;" href="/new_test">Add Test</a>
+		<a style="margin-left:15px;" href="/new_test">Add Test</a>
 	{:else}
 		<a href={loginpath()}>Login to add a test</a>
 	{/if}

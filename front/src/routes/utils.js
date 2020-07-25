@@ -142,8 +142,6 @@ export function timeSince(date) {
     if (interval==null) {
         return "just now";
     }
-    console.log(interval);
-    console.log(interval)
     const count = Math.floor(seconds / (interval.seconds+1));
     return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;
 }
