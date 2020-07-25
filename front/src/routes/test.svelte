@@ -153,6 +153,7 @@
 	    grid-column: 1 / 5;
 	    grid-row: 4;
 	    font-size: 80%;
+		margin-top: -5px;
   	}
 
 
