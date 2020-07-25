@@ -53,6 +53,14 @@
 		column-gap: 1em;
 	}
 
+	@media (max-width:650px) {
+	.tests {
+ 		column-count: 1;
+		column-gap: 1em;
+	}
+
+	}
+
 	.title {
 		display: flex;
 		align-items: center;

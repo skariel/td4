@@ -139,6 +139,9 @@ export function timeSince(date) {
         { label: 'second', seconds: 0 }
     ];
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (seconds==0) {
+        return "just now";
+    }
     const interval = intervals.find(i => i.seconds < seconds);
     const count = Math.floor(seconds / interval.seconds);
     return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;
