@@ -102,7 +102,7 @@
 	<title>Tests</title>
 </svelte:head>
 
-<div style="visibility: hidden;">
+<div style="visibility: hidden; height: 0px;">
 <!-- exporting with sapper -->
 	<a href="/test">exporting</a>
 	<a href="/solution">exporting</a>
