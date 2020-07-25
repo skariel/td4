@@ -130,18 +130,6 @@
 		margin-top: 7px;
 	}
 
-
-	/* .code {
-		background-color: #333333;
-		min-height: 100px;
-		padding: 10px;
-		margin-top: 15px;
-	}
-
-	code {
-		background-color: #00000000;
-		color: antiquewhite;
-	} */
 	.title {
 		display: flex;
 		align-items: center;
