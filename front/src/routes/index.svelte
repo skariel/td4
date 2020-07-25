@@ -103,9 +103,19 @@
 	{/if}
 	{#if user['avatar'] != null}
 		{#if user_filter != null}
-			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0" on:click={()=>{load_data();}}>all tests</a>
+			<a style="margin-right?:15px; margin-left:auto;"
+			   href="/?page=0"
+			   on:click={()=>{tests=[]}}
+			>
+				all tests
+			</a>
 		{:else}
-			<a style="margin-right?:15px; margin-left:auto;" href="/?page=0&user={user.display_name}">my tests</a>
+			<a style="margin-right?:15px; margin-left:auto;"
+			   href="/?page=0&user={user.display_name}"
+			   on:click={()=>{tests=[]}}
+			>
+			   my tests
+			</a>
 		{/if}
 		<a style="margin-right?:15px; margin-left:15px;" href="/new_test">Add Test</a>
 	{:else}
