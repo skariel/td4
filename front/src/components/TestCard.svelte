@@ -1,5 +1,9 @@
 <script>
+	import { timeSince } from '../routes/utils';
+
     export let test;
+
+    const ts = timeSince(new Date(test.ts_updated));
 </script>
 
 <style>
@@ -24,7 +28,7 @@
         margin-right:20px;
     }
 
-    
+
     .topbar {
         grid-column: 1 / 5;
         grid-row: 1;
@@ -83,7 +87,7 @@
     </div>
     <h4 class="testtitle">Title: <a href='{"/test?id="+test.id+"&page=0"}'>{test.title}</a></h4>
     <h4 class="testdescr">Descr: {test.descr}</h4>
-    <h4 class="updated">u: {test.ts_updated}</h4>
+    <h4 class="updated">updated {ts}</h4>
 
     <h4 class="failed">fail {test.total_fail}</h4>
     <h4 class="passed">pass {test.total_pass}</h4>

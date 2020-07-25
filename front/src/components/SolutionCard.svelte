@@ -1,14 +1,10 @@
 <script>
+	import { timeSince } from '../routes/utils';
+
     export let solution;
 
-    function getRunTime(t) {
-        if (!t.Valid) {
-            return "not started yet";
-        }
-        else {
-            return t.Time;
-        }
-    }
+    const ts = timeSince(new Date(solution.ts_updated));
+
 </script>
 
 <style>
@@ -79,12 +75,7 @@
             </a>
         </h4>
     </div>
-    <h4 class="created">c: {solution.ts_created}</h4>
-    <h4 class="updated">u: {solution.ts_updated}</h4>
-
+    <h4 class="updated">updated: {ts}</h4>
     <h4 class="status">Status: {solution.status}</h4>
-
-    <h4 class="started">s: {getRunTime(solution.ts_start)}</h4>
-    <h4 class="ended">e: {getRunTime(solution.ts_end)}</h4>
 </div>
 
