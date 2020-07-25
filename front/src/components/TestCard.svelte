@@ -32,7 +32,7 @@
     width: 40px;
     height: 40px;
     margin-right: 20px;
-    margin-top: 3px;
+    margin-top: 0px;
   }
 
   .topbar {
@@ -88,6 +88,10 @@
     font-size: 80%;
   }
 
+  .displayname {
+    margin-bottom: 1px;
+  }
+
   .pending {
     grid-column: 3;
     grid-row: 5;
@@ -124,7 +128,7 @@
       <h4 class="displayname">{test.display_name}</h4>
       <h4 class="updated">{ts}</h4>
     </div>
-    <h4 class="testid">#{test.id}</h4>
+    <h4 class="testid"><a href={'/test?id=' + test.id + '&page=0'}>#{test.id}</a></h4>
   </div>
 
   {#if test.descr.title < 128}
