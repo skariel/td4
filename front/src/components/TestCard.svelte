@@ -131,7 +131,7 @@
     <h4 class="testid"><a href={'/test?id=' + test.id + '&page=0'}>#{test.id}</a></h4>
   </div>
 
-  {#if test.descr.title < 128}
+  {#if test.title.length < 128}
     <h4 class="testtitle">
         <a href={'/test?id=' + test.id + '&page=0'}>{test.title}</a>
     </h4>

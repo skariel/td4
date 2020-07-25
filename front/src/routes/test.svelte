@@ -1,8 +1,16 @@
+<svelte:head>
+	<link rel="stylesheet"
+      href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
+	<script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/highlight.min.js"></script>
+
+	<title>Test {test_id}</title>
+</svelte:head>
+
 <script>
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, afterUpdate } from 'svelte';
 	import { goto } from '@sapper/app';
 
-	import { get, del, getUser, loginpath, start_invalidate_cache } from './utils';
+	import { get, del, getUser, loginpath, start_invalidate_cache, timeSince } from './utils';
 	import SolutionCard from '../components/SolutionCard.svelte'
 
 	let user      = {};
@@ -11,8 +19,23 @@
 	let test      = [];
 	let solutions = [];
 	let loading   = 2;
+	let delete_count = 3;
+	const delete_msg = [
+		'permanently delete test, final button!',
+		'press again to delete, just to be sure',
+		'click it one more time!',
+		'delete test',
+	]
+	let curr_delete_msg = delete_msg[3];
+
+	afterUpdate(()=>{
+		document.querySelectorAll('pre code').forEach((block) => {
+			hljs.highlightBlock(block);
+		})
+	})
 
 	onMount(async ()=>{
+		delete_count = 3;
         user = getUser();
 		window.addEventListener("locationchange", load_data);
 		load_data()
@@ -42,12 +65,20 @@
 		page = parseInt(page)
         test_id = url.searchParams.get("id")
 		get(user, 'test/'+test_id)
-			.then((r)=>{test=r.data; loading -= 1;})
+			.then((r)=>{
+				test=r.data;
+				loading -= 1;
+			  });
 		get(user, 'solutions_by_test/'+test_id+'/'+page*10)
 			.then((r)=>{solutions=r.data; loading -= 1;})
 	}
 
 	async function delete_test() {
+		if (delete_count > 0) {
+			delete_count -= 1;
+			curr_delete_msg = delete_msg[delete_count];
+			return
+		}
 		const res = await del(user, 'delete_test/'+test.id);
 		if (res.status == 200) {
 			start_invalidate_cache();
@@ -81,71 +112,89 @@
     .top {
         display:       flex;
     }
+
     .teststat {
         display:       flex;
 		margin-top:    0px; 
     }
+
     .avatar {
         width:    40px;
         height:   40px;
         margin-right:20px;
     }
 
-    .testid {
-        margin-left: auto;
-    }
+	.testid {
+		margin-left: auto;
+		font-size: 150%;
+		margin-top: 7px;
+	}
 
-	.code {
+
+	/* .code {
 		background-color: #333333;
 		min-height: 100px;
+		padding: 10px;
+		margin-top: 15px;
 	}
 
 	code {
 		background-color: #00000000;
 		color: antiquewhite;
-	}
+	} */
 	.title {
 		display: flex;
 		align-items: center;
 	}
+
 	.title a {
 		margin-left: auto;
 	}
+
 	.bottom {
 		display: flex;
 		justify-content: center;
 		margin-top: 20px;
 	}
+
     .filler {
         width: 20px;
     }
 
+	.updated {
+	    grid-column: 1 / 5;
+	    grid-row: 4;
+	    font-size: 80%;
+  	}
+
+
 
 </style>
-
-<svelte:head>
-	<title>Test {test_id}</title>
-</svelte:head>
 
 {#if loading>0}
 	<h1>Loading...</h1>
 {:else}
-	<div class="top">
-		<img class="avatar" src={test.avatar} alt="avatar"/>
-		<h4 class="displayname">{test.display_name}</h4>
-		<h4 class="testid">test {test.id}</h4>
-	</div>
 
-	<h3>Title: {test.title}</h3>
-	<p>Description: {test.descr}</p>
+  <div class="top">
+    <img class="avatar" src={test.avatar} alt="avatar" />
+    <div style="display:flex; flex-direction: column; width: 100%">
+      <h4 class="displayname">{test.display_name}</h4>
+      <h4 class="updated">{timeSince(new Date(test.ts_updated))}</h4>
+    </div>
+    <h4 class="testid"><a href={'/test?id=' + test.id + '&page=0'}>#{test.id}</a></h4>
+  </div>
+
+
+	<h3>{test.title}</h3>
+	<p style='color:#777777;'>{test.descr}</p>
 
 	{#if user.display_name==test.display_name}
 		<button on:click={goto("/test_edit?id="+test.id)}>Edit Test</button>
-		<button on:click={delete_test}>Permanently delete test</button>
+		<button on:click={delete_test}>{curr_delete_msg}</button>
 	{/if}
 
 	<pre class="code">
-		<code>
+		<code class='lang-python'>
 			{test.code}
 		</code>
 	</pre>

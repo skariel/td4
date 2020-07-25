@@ -37,10 +37,14 @@
 
 <h1>Tech stack</h1>
 <p>
-	<a href="https://svelte.dev/">Svelte</a> <a href="https://sapper.svelte.dev/">(Sapper)</a>, Postgres, golang (no web framework), exported static html and js hosted in Github-Pages,
-	backend api, workers and DB on a $5 per month server. Why no HTML over the wire? because it is
+	<a href="https://svelte.dev/">Svelte</a> <a href="https://sapper.svelte.dev/">(Sapper)</a>,
+	Postgres, golang (no web framework), exported static html and js hosted in Github-Pages,
+	backend api, workers and DB on a $5 per month server. Code highlighting by
+	<a href="https://highlightjs.org/">highlight.js</a>. Why no HTML over the wire? because it is
 	easier with Svelte, it has <a href="https://svelte.dev/tutorial/nested-components">scoped css</a>, 
-	it is fast, small, etc. So for the dev commodity. It's really a joy to use.
+	it is fast, small, etc. So for dev sanity. It's really a joy to use. Why no SSR? because
+	it is easier on the server just serving a bit of json without running a node process. It is
+	trivial to add with Sapper, maybe when I get a bigger server.
 </p>
 
 <h1>How could this site be further developped?</h1>
@@ -53,6 +57,12 @@
 	<li>a tool to manage software development in a TDD style: imagine a tech lead that publishes tests
 	and a team that implements solutions. This would require integration with existing CI solutions, maybe Github etc.</li>
 </ul>
+
+<h1>The styling of the site is horrendous</h1>
+<p>indeed. But functional. I'm just a programmer :)</p>
+
+<h1>Is there search functionality?</h1>
+<p>not yet. Maybe one day...</p>
 
 <h1>Who developed this, how to contact?</h1>
 <p>Ariel Keselman (skariel@gmail.com)</p>

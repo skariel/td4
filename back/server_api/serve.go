@@ -32,7 +32,7 @@ const (
 	globalLimiterMaxRate            = 4.0
 	newTestLimiterCleanEvery        = 10 * time.Hour
 	newTestLimiterWindowSize        = 5 * time.Hour
-	newTestLimiterMaxRate           = 5.0
+	newTestLimiterMaxRate           = 10.0
 	editTestLimiterCleanEvery       = 2 * time.Hour
 	editTestLimiterWindowSize       = 1 * time.Hour
 	editTestLimiterMaxRate          = 10.0
