@@ -4,13 +4,15 @@
 	import { writable } from "svelte/store";
 	import { goto } from '@sapper/app';
 
-	// TODO: fix these to work "onmount"
 	let user = null;
-	const scode = writable(localStorage.getItem("scode") || "");
-	scode.subscribe(val => localStorage.setItem("scode", val));
 	let test_id = 0;
 
+	let scode = null;
+
     onMount(()=>{
+		scode = writable(localStorage.getItem("scode") || "");
+		scode.subscribe(val => localStorage.setItem("scode", val));
+
 		user = getUser();
 		const url = new URL(location)
 		test_id = parseInt(url.searchParams.get("test_id"))
@@ -29,7 +31,7 @@
 	}
 
 	function validate(scode) {
-		if (scode.length == 0) {
+		if ((scode==null)||(scode.length == 0)) {
 			return "code is missing";
 		}
 		if (scode.length > 8192) {

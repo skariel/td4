@@ -4,16 +4,20 @@
 	import { writable } from "svelte/store";
 	import { goto } from '@sapper/app';
 
-	// TODO: fix these to work "onmount"
 	let user = null;
-	const tname = writable(localStorage.getItem("tname") || "");
-	tname.subscribe(val => localStorage.setItem("tname", val));
-	const tdescr = writable(localStorage.getItem("tdescr") || "");
-	tdescr.subscribe(val => localStorage.setItem("tdescr", val));
-	const tcode = writable(localStorage.getItem("tcode") || "");
-	tcode.subscribe(val => localStorage.setItem("tcode", val));
+
+	let tname = null;
+	let tdescr = null;
+	let tcode = null;
 
     onMount(()=>{
+		tname = writable(localStorage.getItem("tname") || "");
+		tname.subscribe(val => localStorage.setItem("tname", val));
+		tdescr = writable(localStorage.getItem("tdescr") || "");
+		tdescr.subscribe(val => localStorage.setItem("tdescr", val));
+		tcode = writable(localStorage.getItem("tcode") || "");
+		tcode.subscribe(val => localStorage.setItem("tcode", val));
+
         user = getUser();
     })
 
@@ -33,19 +37,19 @@
 	}
 
 	function validate(tname, tdescr, tcode) {
-		if (tname.length == 0) {
+		if ((tname==null)||(tname.length == 0)) {
 			return "missing title"
 		}
 		if (tname.length > 256) {
 			return `title is too long: ${tname.length} > 256`
 		}
-		if (tdescr.length == 0) {
+		if ((tdescr==null)||(tdescr.length == 0)) {
 			return "description is missing"
 		}
 		if (tdescr.length > 2048) {
 			return `description is too long: ${tname.length} > 2048`
 		}
-		if (tcode.length == 0) {
+		if ((tcode==null)||(tcode.length == 0)) {
 			return "code is missing"
 		}
 		if (tcode.length > 8192) {

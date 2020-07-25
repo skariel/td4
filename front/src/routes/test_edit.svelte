@@ -19,16 +19,13 @@
 
     onMount(()=>{
 		let test_id = get_test_id_from_url();
-		utname = writable("");
-		utdescr = writable("");
-		utcode = writable("");
 
-		// utname = writable(localStorage.getItem("utname_"+test_id) || "");
-		// utname.subscribe(val => localStorage.setItem("utname_"+test_id, val));
-		// utdescr = writable(localStorage.getItem("utdescr_"+test_id) || "");
-		// utdescr.subscribe(val => localStorage.setItem("utdescr_"+test_id, val));
-		// utcode = writable(localStorage.getItem("utcode_"+test_id) || "");
-		// utcode.subscribe(val => localStorage.setItem("utcode_"+test_id, val));
+		utname = writable(localStorage.getItem("utname_"+test_id) || "");
+		utname.subscribe(val => localStorage.setItem("utname_"+test_id, val));
+		utdescr = writable(localStorage.getItem("utdescr_"+test_id) || "");
+		utdescr.subscribe(val => localStorage.setItem("utdescr_"+test_id, val));
+		utcode = writable(localStorage.getItem("utcode_"+test_id) || "");
+		utcode.subscribe(val => localStorage.setItem("utcode_"+test_id, val));
 
 		user = getUser();
 		load_data();
