@@ -90,6 +90,8 @@ For later:
 Bugs:
 
 # BUG: android FF, localstorage causing problems (in test_edit, solution_edit). Currently disabled
+# BUG: "infinity seconds ago" in test-1 solution-2
+
 
 
 
