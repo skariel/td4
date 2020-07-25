@@ -1,5 +1,3 @@
-// TODO: list async fetch
-
 const api_basepath = "https://api.solvemytest.dev/"
 const static_basepath = "https://solvemytest.dev/"
 const invalidate_cache_ttl_ms = 5000

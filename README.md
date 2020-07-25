@@ -85,6 +85,7 @@ For later:
 # TODO: add different languages (go, node (js, ts), etc.)
 # TODO: global stats (total # tests pending, running, passing, failing, ETA for running a test etc.)
 # TODO: custom 404 page for github pages: https://docs.github.com/en/github/working-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
+# TODO: limit docker size (to less than 10Gb?)
 
 Bugs:
 

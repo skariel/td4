@@ -19,7 +19,6 @@
 	});
 
 	onDestroy(async ()=>{
-        // TODO: otherwise running on node?! a bug?!
         if (process.browser == true) {
             window.removeEventListener("locationchange", load_data);
         }

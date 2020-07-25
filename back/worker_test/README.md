@@ -14,4 +14,3 @@ docker ps -a
 in /dock:
 docker build -t td4:v1 .
 
-# TODO: limit docker size (to less than 10Gb?)
