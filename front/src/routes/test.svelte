@@ -57,11 +57,20 @@
 
 </script>
 
+
 <style>
 	.solutions {
  		column-count: 2;
 		column-gap: 1em;
 	}
+
+	@media (max-width:650px) {
+		.solutions {
+			column-count: 1;
+			column-gap: 1em;
+		}
+	}
+
 
 	.solutioncard {
 		display: inline-block;
