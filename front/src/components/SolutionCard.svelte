@@ -39,11 +39,6 @@
         margin-left: auto;
     }
 
-    .created {
-        grid-column: 1 / 5;
-        grid-row: 2;
-    }
-
     .updated {
         grid-column: 1 / 5;
         grid-row: 3;
@@ -52,14 +47,6 @@
     .status {
         grid-column: 1 / 5;
         grid-row: 4;
-    }
-    .started {
-        grid-column: 1 / 5;
-        grid-row: 5;
-    }
-    .ended {
-        grid-column: 1 / 5;
-        grid-row: 6;
     }
 </style>
 
