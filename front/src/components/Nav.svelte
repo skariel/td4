@@ -77,7 +77,7 @@
 <nav>
 	<ul>
 		<li><a class:selected='{segment === undefined}' href='.'>home</a></li>
-		<li><a class:selected='{segment === "about"}' href='about'>about</a></li>
+		<li><a class:selected='{segment === "docs"}' href='docs'>docs</a></li>
 		<li class="avatar">
 			{#if user['avatar'] == null}
 				<a href={loginpath()}>
